@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AGNI AI | Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4d00;
+            --secondary: #ff1e00;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            /* Mobile browser height fix */
+            height: 100dvh; 
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated Background Blobs */
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 77, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 30, 0, 0.1) 0%, transparent 50%);
+            filter: blur(80px);
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        header {
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.6);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .dot { width: 10px; height: 10px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; }
+        header h1 { font-size: 1.1rem; letter-spacing: 1px; }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: none; /* Firefox */
+        }
+        #chat-box::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: slideUp 0.3s ease-out;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Fixed Bottom Input Area */
+        .input-area {
+            padding: 15px 20px 25px 20px; /* Extra bottom padding for mobile gestures */
+            background: rgba(0,0,0,0.4);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .input-bar {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 6px 6px 6px 15px;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+        .input-bar:focus-within {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.12);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            padding: 10px 0;
+            font-size: 1rem;
+        }
+
+        button {
+            background: white;
+            color: black;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            transition: 0.2s;
+        }
+
+        button:hover { transform: scale(1.05); background: var(--primary); color: white; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="main-container">
+    <header>
+        <div class="brand">
+            <div class="dot"></div>
+            <h1>AGNI AI</h1>
+        </div>
+        <small style="opacity: 0.5;">v2.0 Beta</small>
+    </header>
+
+    <div id="chat-box">
+        <div class="message bot-message">नमस्ते! अग्नि AI अब पहले से ज्यादा स्मार्ट और बेहतर है। मैं आपकी क्या सेवा कर सकता हूँ? 🔥</div>
+    </div>
+
+    <div class="input-area">
+        <div class="input-bar">
+            <input type="text" id="user-input" placeholder="Ask Agni anything..." autocomplete="off">
+            <button onclick="sendMessage()">➔</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if(!text) return;
+
+        addMsg(text, 'user-message');
+        userInput.value = '';
+
+        const loader = addMsg('Generating...', 'bot-message');
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            loader.remove();
+
+            if(data.choices) {
+                addMsg(data.choices[0].message.content, 'bot-message');
+            } else {
+                addMsg("Error: Response nahi mila.", 'bot-message');
+            }
+        } catch(e) {
+            loader.remove();
+            addMsg("Server connection error!", 'bot-message');
+        }
+    }
+
+    function addMsg(text, type) {
+        const d = document.createElement('div');
+        d.className = `message ${type}`;
+        d.innerText = text;
+        chatBox.appendChild(d);
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        return d;
+    }
+
+    userInput.addEventListener('keypress', e => {
+        if(e.key === 'Enter') sendMessage();
+    });
+</script>
+
+</body>
+</html>
