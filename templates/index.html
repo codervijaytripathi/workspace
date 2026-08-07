@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>MP Bhoj PDF → Excel Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<style>
+
+    :root {
+        --bg: #070709;
+        --bg-elevated: #0f0f14;
+        --bg-elevated-2: #16161d;
+        --bg-elevated-3: #1c1c26;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-strong: rgba(255, 255, 255, 0.12);
+        --text: #f0f0f5;
+        --text-dim: #9394a5;
+        --text-faint: #5a5b6e;
+        --accent: #7c6cfc;
+        --accent-soft: rgba(124, 108, 252, 0.12);
+        --accent-strong: #9b8fff;
+        --accent-glow: rgba(124, 108, 252, 0.35);
+      --green: #22c55e;
+--green-soft: rgba(34, 197, 94, 0.10);
+--green-glow: rgba(34, 197, 94, 0.25);
+        --amber: #fbbf24;
+        --amber-soft: rgba(251, 191, 36, 0.10);
+        --red: #fb7185;
+        --red-soft: rgba(251, 113, 133, 0.10);
+        --red-glow: rgba(251, 113, 133, 0.25);
+        --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+        --font-body: 'Inter', 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+        --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
+        --shadow-glow: 0 0 40px rgba(124, 108, 252, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); }
+    body {
+        margin: 0;
+        font-family: var(--font-body);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        position: relative;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: 1.5;
+    }
+    .ambient-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    .ambient-bg::before {
+        content: '';
+        position: absolute;
+        top: -20%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1000px;
+        height: 600px;
+        background: radial-gradient(ellipse at 50% 0%, rgba(124,108,252,0.10), transparent 70%);
+    }
+    .ambient-bg::after {
+        content: '';
+        position: absolute;
+        bottom: -10%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(ellipse at center, rgba(52,211,153,0.04), transparent 60%);
+    }
+    .grid-pattern {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 80%);
+    }
+    header {
+        position: relative;
+        z-index: 1;
+        padding: 32px 40px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand-mark {
+        width: 42px;
+        height: 42px;
+        color: var(--accent);
+        flex-shrink: 0;
+        position: relative;
+    }
+    .brand-mark::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 14px;
+        background: var(--accent-soft);
+        filter: blur(12px);
+        opacity: 0.6;
+        z-index: -1;
+    }
+    .brand-text h1 {
+        font-size: 20px;
+        margin: 0;
+        font-weight: 700;
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+        color: var(--text);
+        line-height: 1.2;
+    }
+    .brand-text p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--text-dim);
+        font-weight: 400;
+        letter-spacing: 0.01em;
+    }
+    .header-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--bg-elevated-2);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+    }
+    .header-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 8px var(--green-glow);
+    }
+    .pipeline {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 8px auto 0;
+        padding: 0 40px;
+        display: flex;
+        align-items: center;
+    }
+    .pipe-node {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 8px;
+        cursor: pointer;
+        color: var(--text-faint);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        font-family: inherit;
+    }
+    .pipe-node:hover { color: var(--text-dim); }
+    .pipe-node.active { color: var(--text); }
+    .pipe-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1.5px solid var(--border);
+        background: var(--bg-elevated);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .pipe-icon svg { width: 18px; height: 18px; }
+    .pipe-node.active .pipe-icon {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        box-shadow: 0 0 0 4px rgba(124,108,252,0.08), 0 0 20px rgba(124,108,252,0.15);
+    }
+    .pipe-label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font-display);
+        white-space: nowrap;
+        text-align: left;
+    }
+    .pipe-step {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text-faint);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .pipe-node.active .pipe-step { color: var(--accent-strong); }
+    .pipe-connector {
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(90deg, var(--border) 0%, var(--border) 100%);
+        margin: 0 8px;
+        position: relative;
+        min-width: 32px;
+        overflow: visible;
+        top: -10px;
+        border-radius: 1px;
+    }
+    .pipe-pulse {
+        position: absolute;
+        top: -3px;
+        left: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px 2px var(--accent-glow);
+        animation: pipe-travel 2.8s ease-in-out infinite;
+        opacity: 0;
+    }
+    @keyframes pipe-travel {
+        0% { left: 0%; opacity: 0; transform: scale(0.5); }
+        10% { opacity: 1; transform: scale(1); }
+        90% { opacity: 1; transform: scale(1); }
+        100% { left: 100%; opacity: 0; transform: scale(0.5); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .pipe-pulse { animation: none; display: none; }
+    }
+    main {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 32px auto;
+        padding: 0 40px 80px;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .tab-grid {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    .sidebar { min-width: 0; }
+    .main-panel { min-width: 0; }
+    .main-panel .card,
+    .main-panel .canvas-placeholder {
+        min-height: 520px;
+    }
+    .canvas-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        min-height: 520px;
+        border: 1.5px dashed var(--border);
+        border-radius: 16px;
+        color: var(--text-faint);
+        text-align: center;
+        padding: 48px;
+        background: var(--bg-elevated);
+        transition: all 0.3s ease;
+    }
+    .canvas-placeholder:hover {
+        border-color: var(--border-strong);
+        background: var(--bg-elevated-2);
+    }
+    .canvas-placeholder .illus {
+        width: 64px;
+        height: 64px;
+        color: var(--text-faint);
+        opacity: 0.4;
+        transition: all 0.3s ease;
+    }
+    .canvas-placeholder:hover .illus {
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+    .canvas-placeholder p {
+        margin: 0;
+        font-size: 14px;
+        max-width: 280px;
+        line-height: 1.6;
+        color: var(--text-dim);
+    }
+    .result-box.empty-state { display: none; }
+    @media (max-width: 900px) {
+        main { max-width: 100%; padding: 0 20px 60px; }
+        header { padding: 24px 20px 20px; }
+        .pipeline { padding: 0 20px; }
+        .tab-grid { grid-template-columns: 1fr; }
+        .header-badge { display: none; }
+    }
+    .card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-md), var(--shadow-glow);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    }
+    .card:hover {
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+    #dropzone, #dropzoneMobile, #dropzoneWa {
+        border: 2px dashed var(--border-strong);
+        border-radius: 14px;
+        padding: 48px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    #dropzone::before, #dropzoneMobile::before, #dropzoneWa::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 50%, var(--accent-soft), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    #dropzone:hover, #dropzoneMobile:hover, #dropzoneWa:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+    }
+    #dropzone:hover::before, #dropzoneMobile:hover::before, #dropzoneWa:hover::before {
+        opacity: 1;
+    }
+    #dropzone.dragover, #dropzoneMobile.dragover, #dropzoneWa.dragover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        transform: scale(1.01);
+    }
+    #dropzone .icon, #dropzoneMobile .icon, #dropzoneWa .icon {
+        font-size: 36px;
+        margin-bottom: 14px;
+        filter: grayscale(1) opacity(0.5);
+        display: block;
+        transition: all 0.3s ease;
+    }
+    #dropzone:hover .icon, #dropzoneMobile:hover .icon, #dropzoneWa:hover .icon {
+        filter: grayscale(0) opacity(0.8);
+        transform: scale(1.1);
+    }
+    #dropzone .main-text, #dropzoneMobile .main-text, #dropzoneWa .main-text {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        position: relative;
+        z-index: 1;
+    }
+    #dropzone .sub-text, #dropzoneMobile .sub-text, #dropzoneWa .sub-text {
+        font-size: 12.5px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        position: relative;
+        z-index: 1;
+    }
+    #fileInput, #fileInputMobile, #fileInputWa { display: none; }
+    .file-chip {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-elevated-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        font-size: 13.5px;
+        transition: all 0.2s ease;
+    }
+    .file-chip:hover {
+        border-color: var(--border-strong);
+    }
+    .file-chip .name { font-weight: 600; flex: 1; word-break: break-all; color: var(--text); }
+    .file-chip .remove {
+        color: var(--red);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .file-chip .remove:hover {
+        background: var(--red-soft);
+    }
+    button.primary {
+        margin-top: 18px;
+        background: linear-gradient(135deg, var(--accent), #8b7cf7);
+        color: #fff;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font-display);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(124,108,252,0.25);
+        letter-spacing: 0.01em;
+    }
+    button.primary::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    button.primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(124,108,252,0.35);
+    }
+    button.primary:hover:not(:disabled)::before {
+        opacity: 1;
+    }
+    button.primary:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    button.primary:disabled {
+        background: var(--bg-elevated-3);
+        color: var(--text-faint);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    button.secondary {
+        background: linear-gradient(135deg, var(--accent), #8b7cf7);
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        font-family: var(--font-display);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 12px rgba(124,108,252,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    button.secondary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(124,108,252,0.3);
+    }
+    button.secondary:disabled {
+        background: var(--bg-elevated-3);
+        color: var(--text-faint);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+button.start-btn {
+    flex: 1;
+    background: linear-gradient(135deg, var(--green), #4ade80);
+    color: #052e16;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+button.start-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+}
+button.start-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+button.start-btn:disabled {
+    background: var(--bg-elevated-3);
+    color: var(--text-faint);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+    button.stop-btn {
+        flex: 1;
+        background: linear-gradient(135deg, var(--red), #f43f5e);
+        color: #4c0519;
+        border: none;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: var(--font-display);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 16px rgba(251,113,133,0.25);
+    }
+    button.stop-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(251,113,133,0.35);
+    }
+    button.stop-btn:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    button.stop-btn:disabled {
+        background: var(--bg-elevated-3);
+        color: var(--text-faint);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    .progress-wrap { display: none; margin-top: 20px; }
+    .progress-bar-bg {
+        background: var(--bg-elevated-3);
+        border-radius: 8px;
+        height: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+    .progress-bar-bg::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .progress-bar-fill {
+        background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+        height: 100%;
+        width: 0%;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 8px;
+        position: relative;
+    }
+    .progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        border-radius: 0 8px 8px 0;
+    }
+    .progress-text {
+        margin-top: 10px;
+        font-size: 12px;
+        font-family: var(--font-mono);
+        color: var(--text-dim);
+        text-align: center;
+        letter-spacing: 0.02em;
+    }
+    .result-box { display: none; }
+    .status-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-family: var(--font-display);
+        letter-spacing: -0.01em;
+    }
+    .status-line.ok { color: var(--green); }
+    .status-line.warn { color: var(--amber); }
+    .status-line.err { color: var(--red); }
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 20px 0;
+    }
+    .stat {
+        background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .stat:hover {
+        border-color: var(--border-strong);
+        transform: translateY(-1px);
+    }
+    .stat .num {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        font-family: var(--font-mono);
+        letter-spacing: -0.02em;
+        line-height: 1;
+    }
+    .stat .label {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+    a.download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--green), #2dd4a0);
+        color: #064e3b;
+        text-decoration: none;
+        padding: 13px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-family: var(--font-display);
+        font-size: 14px;
+        margin-top: 6px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 16px rgba(52,211,153,0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    a.download-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(52,211,153,0.35);
+    }
+    a.download-btn:active {
+        transform: translateY(0);
+    }
+    table.preview {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12px;
+        margin-top: 20px;
+    }
+    table.preview th {
+        background: var(--bg-elevated-3);
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 10px 8px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        font-size: 10.5px;
+        border-bottom: 1px solid var(--border);
+    }
+    table.preview th:first-child { border-radius: 8px 0 0 0; }
+    table.preview th:last-child { border-radius: 0 8px 0 0; }
+    table.preview td {
+        padding: 9px 8px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+        max-width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text);
+        font-size: 11.5px;
+    }
+    table.preview tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+    table.preview tr:hover { background: rgba(255,255,255,0.03); }
+    .preview-scroll {
+        overflow-x: auto;
+        max-height: 360px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-strong) transparent;
+    }
+    .preview-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .preview-scroll::-webkit-scrollbar-track { background: transparent; }
+    .preview-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    .preview-note {
+        font-size: 12px;
+        color: var(--text-faint);
+        margin-top: 10px;
+        font-style: italic;
+    }
+    .error-box {
+        background: var(--red-soft);
+        border: 1px solid rgba(251,113,133,0.25);
+        color: #fecdd3;
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        margin-top: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .error-box::before {
+        content: '⚠';
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: -2px;
+    }
+    .reset-link {
+        display: inline-block;
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--accent-strong);
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        padding: 4px 0;
+        border-bottom: 1px solid transparent;
+    }
+    .reset-link:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+    }
+    .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        font-family: var(--font-display);
+        color: var(--text);
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.01em;
+    }
+    .section-title .icon-wrap {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--accent-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-strong);
+        font-size: 14px;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+    .inline-row { display: flex; gap: 10px; }
+    .inline-row input[type=text] {
+        flex: 1;
+        padding: 12px 16px;
+        background: var(--bg-elevated-2);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+    .inline-row input[type=text]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        background: var(--bg-elevated-3);
+    }
+    .inline-row input[type=text]::placeholder {
+        color: var(--text-faint);
+    }
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--text-dim);
+        cursor: pointer;
+        user-select: none;
+    }
+    .checkbox-row input[type=checkbox] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+        cursor: pointer;
+    }
+    .test-result-card {
+        display: none;
+        margin-top: 16px;
+        border-radius: 12px;
+        padding: 16px;
+        animation: fadeIn 0.3s ease;
+    }
+    .test-result-card.found {
+        background: var(--green-soft);
+        border: 1px solid rgba(52,211,153,0.2);
+    }
+    .test-result-card.notfound {
+        background: var(--amber-soft);
+        border: 1px solid rgba(251,191,36,0.2);
+    }
+    .test-result-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 7px 0;
+        font-size: 13.5px;
+        border-bottom: 1px dashed var(--border);
+    }
+    .test-result-row:last-child { border-bottom: none; }
+    .test-result-row .k { color: var(--text-dim); font-weight: 500; }
+    .test-result-row .v { font-weight: 600; font-family: var(--font-mono); color: var(--text); }
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        margin: 24px 0;
+    }
+    .screenshot-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12.5px;
+        color: var(--red);
+        text-decoration: underline;
+        font-weight: 500;
+        transition: opacity 0.2s ease;
+    }
+    .screenshot-link:hover { opacity: 0.8; }
+    textarea.message-box {
+        width: 100%;
+        min-height: 120px;
+        padding: 14px 16px;
+        background: var(--bg-elevated-2);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        transition: all 0.2s ease;
+        outline: none;
+        line-height: 1.6;
+    }
+    textarea.message-box:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        background: var(--bg-elevated-3);
+    }
+    textarea.message-box::placeholder {
+        color: var(--text-faint);
+    }
+    .wa-summary {
+        display: flex;
+        gap: 10px;
+        margin: 16px 0;
+        flex-wrap: wrap;
+    }
+    .wa-summary .pill {
+        background: var(--bg-elevated-2);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 6px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        color: var(--text-dim);
+        transition: all 0.2s ease;
+    }
+    .wa-summary .pill:hover {
+        border-color: var(--border-strong);
+        color: var(--text);
+    }
+    .wa-live {
+        display: none;
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        margin-top: 16px;
+        animation: fadeIn 0.4s ease;
+    }
+    .wa-live-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+    .wa-big-stat { text-align: center; padding: 12px; }
+    .wa-big-stat .num {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text);
+        font-family: var(--font-mono);
+        letter-spacing: -0.02em;
+        line-height: 1;
+    }
+    .wa-big-stat .label {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+    .wa-current {
+        text-align: center;
+        font-size: 13px;
+        font-family: var(--font-mono);
+        color: var(--text-dim);
+        margin-bottom: 10px;
+        min-height: 20px;
+        padding: 8px;
+        background: var(--bg-elevated);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+    .wa-status-badge {
+        text-align: center;
+        font-weight: 700;
+        font-family: var(--font-display);
+        font-size: 14px;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        letter-spacing: -0.01em;
+        transition: all 0.3s ease;
+    }
+    .wa-status-badge.running {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        border: 1px solid rgba(124,108,252,0.2);
+        box-shadow: 0 0 20px rgba(124,108,252,0.1);
+    }
+    .wa-status-badge.stopped {
+        background: var(--amber-soft);
+        color: var(--amber);
+        border: 1px solid rgba(251,191,36,0.2);
+    }
+    .wa-status-badge.completed {
+        background: var(--green-soft);
+        color: var(--green);
+        border: 1px solid rgba(52,211,153,0.2);
+        box-shadow: 0 0 20px rgba(52,211,153,0.1);
+    }
+    .wa-status-badge.error {
+        background: var(--red-soft);
+        color: var(--red);
+        border: 1px solid rgba(251,113,133,0.2);
+        box-shadow: 0 0 20px rgba(251,113,133,0.1);
+    }
+    .wa-status-badge.session_limit_reached {
+        background: var(--amber-soft);
+        color: var(--amber);
+        border: 1px solid rgba(251,191,36,0.2);
+    }
+    .btn-row { display: flex; gap: 12px; margin-top: 16px; }
+    .wa-note {
+        font-size: 13px;
+        color: var(--text-dim);
+        margin-top: 12px;
+        line-height: 1.7;
+        padding: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+    #waDebugOutput {
+        margin-top: 12px;
+        padding: 14px;
+        background: var(--bg-elevated-2);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        white-space: pre-wrap;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.6;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    table.preview td[title]:hover {
+        cursor: help;
+    }
+</style>
+<base target="_blank">
+</head>
+<body>
+
+
+
+<style>
+.crm-header{
+display:flex;justify-content:space-between;align-items:center;
+padding:18px 26px;margin-bottom:10px;
+background:#111827;
+border:1px solid rgba(255,255,255,.08);
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.brand{display:flex;align-items:center;gap:16px}
+.brand-logo{
+width:52px;height:52px;border-radius:14px;
+background:linear-gradient(135deg,#2563eb,#3b82f6);
+display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:7px;
+}
+.brand-logo span{
+background:rgba(255,255,255,.92);
+border-radius:5px;
+}
+.brand-logo span:nth-child(2),
+.brand-logo span:nth-child(3){opacity:.55}
+.brand-text h1{
+margin:0;font:700 24px/1.1 "Segoe UI",sans-serif;
+color:#fff;
+}
+.brand-text p{
+margin:6px 0 0;
+font-size:13px;
+letter-spacing:.08em;
+color:#9ca3af;
+}
+.status-chip{
+display:flex;align-items:center;gap:10px;
+padding:10px 16px;
+border-radius:999px;
+background:#1f2937;
+border:1px solid rgba(255,255,255,.08);
+color:#e5e7eb;
+font-weight:600;
+}
+.status-dot{
+width:10px;height:10px;border-radius:50%;
+background:#22c55e;
+box-shadow:0 0 10px #22c55e;
+}
+</style>
+<div class="ambient-bg"></div>
+<div class="grid-pattern"></div>
+
+
+
+
+<nav class="pipeline">
+    <button class="pipe-node active" id="tabBtnConvert" onclick="switchTab('convert')">
+        <span class="pipe-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="pipe-label"><span class="pipe-step">01</span>PDF → Excel</span>
+    </button>
+    <span class="pipe-connector"><span class="pipe-pulse"></span></span>
+    <button class="pipe-node" id="tabBtnMobile" onclick="switchTab('mobile')">
+        <span class="pipe-icon">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="pipe-label"><span class="pipe-step">02</span>Extract Mobile</span>
+    </button>
+    <span class="pipe-connector"><span class="pipe-pulse" style="animation-delay:1.1s"></span></span>
+    <button class="pipe-node" id="tabBtnWhatsapp" onclick="switchTab('whatsapp')">
+        <span class="pipe-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 20l1.4-4.2A8 8 0 1 1 9 19.5L4 20Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="pipe-label"><span class="pipe-step">03</span>Send WhatsApp</span>
+    </button>
+</nav>
+
+<main>
+    <div class="tab-content active" id="tabConvert">
+    <div class="tab-grid">
+    <div class="sidebar">
+    <div class="card">
+        <div id="dropzone">
+            <div class="icon">📄</div>
+            <div class="main-text">Drag PDF here, or click to choose</div>
+            <div class="sub-text">MP Bhoj Result Sheet PDF (Crystal Reports format)</div>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf">
+
+        <div class="file-chip" id="fileChip">
+            <span>📎</span>
+            <span class="name" id="fileName"></span>
+            <span class="remove" id="removeFile">✕ Remove</span>
+        </div>
+
+        <button class="primary" id="convertBtn" disabled>Convert to Excel</button>
+
+        <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">Starting...</div>
+        </div>
+
+        <div class="error-box" id="errorBox" style="display:none;"></div>
+    </div>
+    </div>
+
+    <div class="main-panel">
+    <div class="card result-box empty-state" id="resultBox">
+        <div class="status-line" id="statusLine"></div>
+
+        <div class="stat-grid">
+            <div class="stat"><div class="num" id="statPages">-</div><div class="label">Pages</div></div>
+            <div class="stat"><div class="num" id="statRecords">-</div><div class="label">Records Extracted</div></div>
+            <div class="stat"><div class="num" id="statExpected">-</div><div class="label">Expected (PDF summary)</div></div>
+        </div>
+
+        <a class="download-btn" id="downloadBtn" href="#">⬇ Download Excel</a>
+        <div><span class="reset-link" id="resetLink">Convert new PDF</span></div>
+
+        <div class="preview-scroll">
+            <table class="preview" id="previewTable"></table>
+        </div>
+        <div class="preview-note">Only first 15 records shown above. Full data is in the Excel file.</div>
+    </div>
+    <div class="canvas-placeholder" id="convertPlaceholder">
+        <svg class="illus" viewBox="0 0 24 24" fill="none"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.2"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.2"/></svg>
+        <p>Upload a PDF to convert — results will appear here</p>
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="tab-content" id="tabMobile">
+        <div class="tab-grid">
+        <div class="sidebar">
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">1</span>
+                Test a single number first
+            </div>
+            <div class="inline-row">
+                <input type="text" id="testEnrollment" placeholder="Enter Enrollment No., e.g. B25142210005">
+                <button class="secondary" id="testBtn">Test</button>
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="testHeadless">
+                <label for="testHeadless">Run in background (browser won't be visible)</label>
+            </div>
+            <div class="progress-wrap" id="testProgressWrap">
+                <div class="progress-text" id="testProgressText">Opening browser, please wait...</div>
+            </div>
+            <div class="test-result-card" id="testResultCard"></div>
+            <div class="error-box" id="testErrorBox" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">2</span>
+                Bulk fetch — for entire list
+            </div>
+            <div id="dropzoneMobile">
+                <div class="icon">📋</div>
+                <div class="main-text">Drag Excel/CSV/PDF here (column with Enrollment No.)</div>
+                <div class="sub-text">Column header should be "Enrollment No" or "Roll No"</div>
+            </div>
+            <input type="file" id="fileInputMobile" accept=".xlsx,.xls,.csv,.pdf">
+
+            <div class="file-chip" id="fileChipMobile">
+                <span>📎</span>
+                <span class="name" id="fileNameMobile"></span>
+                <span class="remove" id="removeFileMobile">✕ Remove</span>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="bulkHeadless">
+                <label for="bulkHeadless">Run in background (browser won't be visible)</label>
+            </div>
+
+            <button class="primary" id="mobileConvertBtn" disabled>Start Fetch</button>
+
+            <div class="progress-wrap" id="mobileProgressWrap">
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="mobileProgressFill"></div></div>
+                <div class="progress-text" id="mobileProgressText">Starting...</div>
+            </div>
+
+            <div class="error-box" id="mobileErrorBox" style="display:none;"></div>
+        </div>
+        </div>
+
+        <div class="main-panel">
+        <div class="card result-box empty-state" id="mobileResultBox">
+            <div class="status-line ok" id="mobileStatusLine"></div>
+
+            <div class="stat-grid">
+                <div class="stat"><div class="num" id="mobileStatTotal">-</div><div class="label">Total Processed</div></div>
+                <div class="stat"><div class="num" id="mobileStatFound">-</div><div class="label">Mobile No. Found</div></div>
+                <div class="stat"><div class="num" id="mobileStatNotFound">-</div><div class="label">Not Found</div></div>
+            </div>
+
+            <a class="download-btn" id="mobileDownloadBtn" href="#">⬇ Download Excel</a>
+            <div><span class="reset-link" id="mobileResetLink">Fetch new list</span></div>
+
+            <div class="preview-scroll">
+                <table class="preview" id="mobilePreviewTable"></table>
+            </div>
+            <div class="preview-note">Only first 15 records shown above. Full data is in the Excel file.</div>
+        </div>
+        <div class="canvas-placeholder" id="mobilePlaceholder">
+            <svg class="illus" viewBox="0 0 24 24" fill="none"><rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="1.2"/></svg>
+            <p>Test a number or start bulk fetch — results will appear here</p>
+        </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tabWhatsapp">
+        <div class="tab-grid">
+        <div class="sidebar">
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">1</span>
+                Open WhatsApp Web & Login
+            </div>
+            <div class="wa-note">
+                Clicking this button will open WhatsApp Web in a new tab in your normal browser.
+                Scan the QR code with your phone to login (as you do daily). Once logged in, keep
+                this tab open and return here.
+            </div>
+           
+<button class="start-btn" id="waOpenBtn">
+    <i class="fa-brands fa-whatsapp"></i>
+    <span>Open WhatsApp Web</span>
+</button>
+<style>
+#waOpenBtn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    width:100%;
+    height:52px;
+
+    background:linear-gradient(135deg,#25D366,#128C7E);
+    border:none;
+    border-radius:12px;
+
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+}
+
+#waOpenBtn i{
+    font-size:20px;
+    width:22px;
+    text-align:center;
+    flex-shrink:0;
+}
+
+#waOpenBtn span{
+    line-height:1;
+}
+</style>
+
+            <div class="error-box" id="waOpenError" style="display:none;"></div>
+            <div><span class="reset-link" id="waDebugLink">🔍 See which windows are currently visible (debug)</span></div>
+            <div class="preview-note" id="waDebugOutput" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">2</span>
+                Upload number list
+            </div>
+            <div id="dropzoneWa">
+                <div class="icon">📋</div>
+                <div class="main-text">Drag Excel/CSV here (column with Mobile Number)</div>
+                <div class="sub-text">Column header should be "Number" / "Mobile" / "Phone"</div>
+            </div>
+            <input type="file" id="fileInputWa" accept=".xlsx,.xls,.csv">
+
+            <div class="file-chip" id="fileChipWa">
+                <span>📎</span>
+                <span class="name" id="fileNameWa"></span>
+                <span class="remove" id="removeFileWa">✕ Remove</span>
+            </div>
+
+            <div class="wa-summary" id="waSummary" style="display:none;">
+                <span class="pill" id="waPillTotal">Total: 0</span>
+                <span class="pill" id="waPillSent">Sent: 0</span>
+                <span class="pill" id="waPillRemaining">Remaining: 0</span>
+            </div>
+
+            <div class="error-box" id="waUploadError" style="display:none;"></div>
+            <div><span class="reset-link" id="waResetLink" style="display:none;">Start with new list (old list will be deleted)</span></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">3</span>
+                Write message
+            </div>
+            <textarea class="message-box" id="waMessage" placeholder="Type the message you want to send to everyone here..."></textarea>
+        </div>
+        </div>
+
+        <div class="main-panel">
+        <div class="card">
+            <div class="section-title">
+                <span class="icon-wrap">4</span>
+                Start Sending
+            </div>
+            <div class="wa-note">
+                Clicking this button will automatically find and bring the WhatsApp Web window
+                to the front. It will send max 20 messages at a time, then auto-stop.
+                You can stop anytime — next time you start, it will resume from where you left off
+                (no number will be sent twice).
+            </div>
+
+            <div class="btn-row">
+                <button class="start-btn" id="waStartBtn">▶ Start Sending</button>
+                <button class="stop-btn" id="waStopBtn" disabled>⏹ Stop</button>
+            </div>
+
+            <div class="error-box" id="waStartError" style="display:none;"></div>
+
+            <div class="wa-live" id="waLive">
+                <div class="wa-status-badge" id="waStatusBadge">-</div>
+                <div class="wa-live-grid">
+                    <div class="wa-big-stat">
+                        <div class="num" id="waSessionSent">0</div>
+                        <div class="label">Sent this session (max 20)</div>
+                    </div>
+                    <div class="wa-big-stat">
+                        <div class="num" id="waTotalSent">0 / 0</div>
+                        <div class="label">Total (from entire list)</div>
+                    </div>
+                </div>
+                <div class="wa-current" id="waCurrentNumber"></div>
+            </div>
+        </div>
+        <div class="canvas-placeholder" id="waPlaceholder">
+            <svg class="illus" viewBox="0 0 24 24" fill="none"><path d="M4 20l1.4-4.2A8 8 0 1 1 9 19.5L4 20Z" stroke="currentColor" stroke-width="1.2"/></svg>
+            <p>Open WhatsApp, upload list, write message — then start sending from here</p>
+        </div>
+        </div>
+        </div>
+    </div>
+</main>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileChip = document.getElementById('fileChip');
+const fileName = document.getElementById('fileName');
+const removeFile = document.getElementById('removeFile');
+const convertBtn = document.getElementById('convertBtn');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const errorBox = document.getElementById('errorBox');
+const resultBox = document.getElementById('resultBox');
+const statusLine = document.getElementById('statusLine');
+const statPages = document.getElementById('statPages');
+const statRecords = document.getElementById('statRecords');
+const statExpected = document.getElementById('statExpected');
+const downloadBtn = document.getElementById('downloadBtn');
+const previewTable = document.getElementById('previewTable');
+const resetLink = document.getElementById('resetLink');
+
+let selectedFile = null;
+let pollTimer = null;
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) setFile(fileInput.files[0]);
+});
+removeFile.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectedFile = null;
+    fileChip.style.display = 'none';
+    convertBtn.disabled = true;
+    fileInput.value = '';
+});
+
+function setFile(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showError('Only .pdf files are allowed.');
+        return;
+    }
+    selectedFile = file;
+    fileName.textContent = file.name;
+    fileChip.style.display = 'flex';
+    convertBtn.disabled = false;
+    errorBox.style.display = 'none';
+}
+
+function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+}
+
+convertBtn.addEventListener('click', () => {
+    if (!selectedFile) return;
+    errorBox.style.display = 'none';
+    resultBox.style.display = 'none';
+    convertBtn.disabled = true;
+    progressWrap.style.display = 'block';
+    progressFill.style.width = '5%';
+    progressText.textContent = 'Uploading...';
+
+    const formData = new FormData();
+    formData.append('pdf_file', selectedFile);
+
+    fetch('/upload', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                progressWrap.style.display = 'none';
+                convertBtn.disabled = false;
+                return;
+            }
+            pollStatus(data.job_id);
+        })
+        .catch(err => {
+            showError('Upload failed: ' + err);
+            progressWrap.style.display = 'none';
+            convertBtn.disabled = false;
+        });
+});
+
+function pollStatus(jobId) {
+    pollTimer = setInterval(() => {
+        fetch('/status/' + jobId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'processing' || data.status === 'queued') {
+                    const cur = data.current_page || 0;
+                    const total = data.total_pages || 0;
+                    if (total > 0) {
+                        const pct = Math.max(10, Math.round((cur / total) * 100));
+                        progressFill.style.width = pct + '%';
+                        progressText.textContent = `Processing... page ${cur} / ${total}`;
+                    } else {
+                        progressText.textContent = 'Opening PDF...';
+                    }
+                } else if (data.status === 'done') {
+                    clearInterval(pollTimer);
+                    progressWrap.style.display = 'none';
+                    convertBtn.disabled = false;
+                    showResult(data);
+                } else if (data.status === 'error') {
+                    clearInterval(pollTimer);
+                    progressWrap.style.display = 'none';
+                    convertBtn.disabled = false;
+                    showError(data.error || 'Something went wrong.');
+                }
+            });
+    }, 800);
+}
+
+function showResult(data) {
+    resultBox.style.display = 'block';
+    const cph = document.getElementById('convertPlaceholder');
+    if (cph) cph.style.display = 'none';
+    const info = data.info;
+    statPages.textContent = info.pages;
+    statRecords.textContent = info.records;
+    statExpected.textContent = info.expected_total !== null ? info.expected_total : '—';
+
+    if (info.match === true) {
+        statusLine.className = 'status-line ok';
+        statusLine.textContent = '✓ Conversion successful — matches PDF summary count';
+    } else if (info.match === false) {
+        statusLine.className = 'status-line warn';
+        statusLine.textContent = '⚠ Conversion done, but record count does not match PDF summary — please verify';
+    } else {
+        statusLine.className = 'status-line ok';
+        statusLine.textContent = '✓ Conversion successful';
+    }
+
+    downloadBtn.href = data.download_url;
+
+    const cols = data.columns;
+    let thead = '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+    let tbody = '<tbody>' + data.preview.map(row =>
+        '<tr>' + cols.map(c => `<td title="${row[c]}">${row[c]}</td>`).join('') + '</tr>'
+    ).join('') + '</tbody>';
+    previewTable.innerHTML = thead + tbody;
+}
+
+resetLink.addEventListener('click', () => {
+    resultBox.style.display = 'none';
+    const cph = document.getElementById('convertPlaceholder');
+    if (cph) cph.style.display = 'flex';
+    selectedFile = null;
+    fileChip.style.display = 'none';
+    convertBtn.disabled = true;
+    fileInput.value = '';
+});
+
+function switchTab(tab) {
+    document.getElementById('tabConvert').classList.toggle('active', tab === 'convert');
+    document.getElementById('tabMobile').classList.toggle('active', tab === 'mobile');
+    document.getElementById('tabWhatsapp').classList.toggle('active', tab === 'whatsapp');
+    document.getElementById('tabBtnConvert').classList.toggle('active', tab === 'convert');
+    document.getElementById('tabBtnMobile').classList.toggle('active', tab === 'mobile');
+    document.getElementById('tabBtnWhatsapp').classList.toggle('active', tab === 'whatsapp');
+    if (tab === 'whatsapp') { refreshWaSummary(); }
+}
+
+const testEnrollment = document.getElementById('testEnrollment');
+const testBtn = document.getElementById('testBtn');
+const testHeadless = document.getElementById('testHeadless');
+const testProgressWrap = document.getElementById('testProgressWrap');
+const testResultCard = document.getElementById('testResultCard');
+const testErrorBox = document.getElementById('testErrorBox');
+
+testBtn.addEventListener('click', () => {
+    const enr = testEnrollment.value.trim();
+    if (!enr) { alert('Enter Enrollment No. first'); return; }
+
+    testResultCard.style.display = 'none';
+    testErrorBox.style.display = 'none';
+    testProgressWrap.style.display = 'block';
+    testBtn.disabled = true;
+
+    fetch('/mobile/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollment_no: enr, headless: testHeadless.checked })
+    })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+        testProgressWrap.style.display = 'none';
+        testBtn.disabled = false;
+        if (!ok) {
+            let msg = data.error || 'Something went wrong';
+            if (data.screenshot_url) {
+                msg += `<br><a class="screenshot-link" href="${data.screenshot_url}" target="_blank">View debug screenshot (send this link to me)</a>`;
+            }
+            testErrorBox.innerHTML = msg;
+            testErrorBox.style.display = 'block';
+            return;
+        }
+        const res = data.result;
+        testResultCard.className = 'test-result-card ' + (res['Status'] === 'Found' ? 'found' : 'notfound');
+        testResultCard.innerHTML = `
+            <div class="test-result-row"><span class="k">Enrollment No</span><span class="v">${res['Enrollment No']}</span></div>
+            <div class="test-result-row"><span class="k">Candidate Name</span><span class="v">${res['Candidate Name'] || '—'}</span></div>
+            <div class="test-result-row"><span class="k">Mobile No</span><span class="v">${res['Mobile No'] || '—'}</span></div>
+            <div class="test-result-row"><span class="k">Status</span><span class="v">${res['Status']}</span></div>
+        `;
+        testResultCard.style.display = 'block';
+    })
+    .catch(err => {
+        testProgressWrap.style.display = 'none';
+        testBtn.disabled = false;
+        testErrorBox.textContent = 'Request failed: ' + err;
+        testErrorBox.style.display = 'block';
+    });
+});
+
+const dropzoneMobile = document.getElementById('dropzoneMobile');
+const fileInputMobile = document.getElementById('fileInputMobile');
+const fileChipMobile = document.getElementById('fileChipMobile');
+const fileNameMobile = document.getElementById('fileNameMobile');
+const removeFileMobile = document.getElementById('removeFileMobile');
+const mobileConvertBtn = document.getElementById('mobileConvertBtn');
+const bulkHeadless = document.getElementById('bulkHeadless');
+const mobileProgressWrap = document.getElementById('mobileProgressWrap');
+const mobileProgressFill = document.getElementById('mobileProgressFill');
+const mobileProgressText = document.getElementById('mobileProgressText');
+const mobileErrorBox = document.getElementById('mobileErrorBox');
+const mobileResultBox = document.getElementById('mobileResultBox');
+const mobileStatusLine = document.getElementById('mobileStatusLine');
+const mobileStatTotal = document.getElementById('mobileStatTotal');
+const mobileStatFound = document.getElementById('mobileStatFound');
+const mobileStatNotFound = document.getElementById('mobileStatNotFound');
+const mobileDownloadBtn = document.getElementById('mobileDownloadBtn');
+const mobilePreviewTable = document.getElementById('mobilePreviewTable');
+const mobileResetLink = document.getElementById('mobileResetLink');
+
+let selectedFileMobile = null;
+let mobilePollTimer = null;
+
+dropzoneMobile.addEventListener('click', () => fileInputMobile.click());
+dropzoneMobile.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneMobile.classList.add('dragover'); });
+dropzoneMobile.addEventListener('dragleave', () => dropzoneMobile.classList.remove('dragover'));
+dropzoneMobile.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzoneMobile.classList.remove('dragover');
+    if (e.dataTransfer.files.length) setFileMobile(e.dataTransfer.files[0]);
+});
+fileInputMobile.addEventListener('change', () => {
+    if (fileInputMobile.files.length) setFileMobile(fileInputMobile.files[0]);
+});
+removeFileMobile.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectedFileMobile = null;
+    fileChipMobile.style.display = 'none';
+    mobileConvertBtn.disabled = true;
+    fileInputMobile.value = '';
+});
+
+function setFileMobile(file) {
+    const okExt = ['.xlsx', '.xls', '.csv', '.pdf'].some(ext => file.name.toLowerCase().endsWith(ext));
+    if (!okExt) {
+        mobileErrorBox.textContent = 'Only .xlsx, .csv, or .pdf files are allowed.';
+        mobileErrorBox.style.display = 'block';
+        return;
+    }
+    selectedFileMobile = file;
+    fileNameMobile.textContent = file.name;
+    fileChipMobile.style.display = 'flex';
+    mobileConvertBtn.disabled = false;
+    mobileErrorBox.style.display = 'none';
+}
+
+mobileConvertBtn.addEventListener('click', () => {
+    if (!selectedFileMobile) return;
+    mobileErrorBox.style.display = 'none';
+    mobileResultBox.style.display = 'none';
+    mobileConvertBtn.disabled = true;
+    mobileProgressWrap.style.display = 'block';
+    mobileProgressFill.style.width = '5%';
+    mobileProgressText.textContent = 'Uploading...';
+
+    const formData = new FormData();
+    formData.append('data_file', selectedFileMobile);
+    formData.append('headless', bulkHeadless.checked ? 'true' : 'false');
+
+    fetch('/mobile/upload', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                mobileErrorBox.textContent = data.error;
+                mobileErrorBox.style.display = 'block';
+                mobileProgressWrap.style.display = 'none';
+                mobileConvertBtn.disabled = false;
+                return;
+            }
+            pollMobileStatus(data.job_id);
+        })
+        .catch(err => {
+            mobileErrorBox.textContent = 'Upload failed: ' + err;
+            mobileErrorBox.style.display = 'block';
+            mobileProgressWrap.style.display = 'none';
+            mobileConvertBtn.disabled = false;
+        });
+});
+
+function pollMobileStatus(jobId) {
+    mobilePollTimer = setInterval(() => {
+        fetch('/mobile/status/' + jobId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'processing' || data.status === 'queued') {
+                    const cur = data.current || 0;
+                    const total = data.total || 0;
+                    if (total > 0) {
+                        const pct = Math.max(10, Math.round((cur / total) * 100));
+                        mobileProgressFill.style.width = pct + '%';
+                        mobileProgressText.textContent = `Processing... ${cur} / ${total}`;
+                    } else {
+                        mobileProgressText.textContent = 'Reading file...';
+                    }
+                } else if (data.status === 'done') {
+                    clearInterval(mobilePollTimer);
+                    mobileProgressWrap.style.display = 'none';
+                    mobileConvertBtn.disabled = false;
+                    showMobileResult(data);
+                } else if (data.status === 'error') {
+                    clearInterval(mobilePollTimer);
+                    mobileProgressWrap.style.display = 'none';
+                    mobileConvertBtn.disabled = false;
+                    mobileErrorBox.textContent = data.error || 'Something went wrong.';
+                    mobileErrorBox.style.display = 'block';
+                }
+            });
+    }, 1000);
+}
+
+function showMobileResult(data) {
+    mobileResultBox.style.display = 'block';
+    const mph = document.getElementById('mobilePlaceholder');
+    if (mph) mph.style.display = 'none';
+    mobileStatTotal.textContent = data.total_processed;
+    mobileStatFound.textContent = data.found;
+    mobileStatNotFound.textContent = data.total_processed - data.found;
+    mobileStatusLine.textContent = '✓ Fetch complete';
+
+    mobileDownloadBtn.href = data.download_url;
+
+    const cols = ['Enrollment No', 'Candidate Name', 'Mobile No', 'Status'];
+    let thead = '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+    let tbody = '<tbody>' + data.preview.map(row =>
+        '<tr>' + cols.map(c => `<td title="${row[c] || ''}">${row[c] || ''}</td>`).join('') + '</tr>'
+    ).join('') + '</tbody>';
+    mobilePreviewTable.innerHTML = thead + tbody;
+}
+
+mobileResetLink.addEventListener('click', () => {
+    mobileResultBox.style.display = 'none';
+    const mph = document.getElementById('mobilePlaceholder');
+    if (mph) mph.style.display = 'flex';
+    selectedFileMobile = null;
+    fileChipMobile.style.display = 'none';
+    mobileConvertBtn.disabled = true;
+    fileInputMobile.value = '';
+});
+
+const dropzoneWa = document.getElementById('dropzoneWa');
+const fileInputWa = document.getElementById('fileInputWa');
+const fileChipWa = document.getElementById('fileChipWa');
+const fileNameWa = document.getElementById('fileNameWa');
+const removeFileWa = document.getElementById('removeFileWa');
+const waSummary = document.getElementById('waSummary');
+const waPillTotal = document.getElementById('waPillTotal');
+const waPillSent = document.getElementById('waPillSent');
+const waPillRemaining = document.getElementById('waPillRemaining');
+const waUploadError = document.getElementById('waUploadError');
+const waResetLink = document.getElementById('waResetLink');
+const waMessage = document.getElementById('waMessage');
+const waStartBtn = document.getElementById('waStartBtn');
+const waStopBtn = document.getElementById('waStopBtn');
+const waStartError = document.getElementById('waStartError');
+const waLive = document.getElementById('waLive');
+const waStatusBadge = document.getElementById('waStatusBadge');
+const waSessionSent = document.getElementById('waSessionSent');
+const waTotalSent = document.getElementById('waTotalSent');
+const waCurrentNumber = document.getElementById('waCurrentNumber');
+
+let selectedFileWa = null;
+let waPollTimer = null;
+
+const STATUS_LABELS = {
+    'idle': 'Idle',
+    'running': '▶ Running...',
+    'stopped': '⏹ Stopped (manually)',
+    'session_limit_reached': '20 message limit reached, stopped',
+    'completed': '✓ Entire list completed!',
+    'error': '⚠ Error occurred',
+};
+
+function refreshWaSummary() {
+    fetch('/whatsapp/summary').then(r => r.json()).then(data => {
+        if (data.exists) {
+            waSummary.style.display = 'flex';
+            waResetLink.style.display = 'inline-block';
+            waPillTotal.textContent = 'Total: ' + data.total;
+            waPillSent.textContent = 'Sent: ' + data.sent;
+            waPillRemaining.textContent = 'Remaining: ' + data.remaining;
+        } else {
+            waSummary.style.display = 'none';
+            waResetLink.style.display = 'none';
+        }
+    });
+}
+
+dropzoneWa.addEventListener('click', () => fileInputWa.click());
+dropzoneWa.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneWa.classList.add('dragover'); });
+dropzoneWa.addEventListener('dragleave', () => dropzoneWa.classList.remove('dragover'));
+dropzoneWa.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzoneWa.classList.remove('dragover');
+    if (e.dataTransfer.files.length) setFileWa(e.dataTransfer.files[0]);
+});
+fileInputWa.addEventListener('change', () => {
+    if (fileInputWa.files.length) setFileWa(fileInputWa.files[0]);
+});
+removeFileWa.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectedFileWa = null;
+    fileChipWa.style.display = 'none';
+    fileInputWa.value = '';
+});
+
+function setFileWa(file) {
+    const okExt = ['.xlsx', '.xls', '.csv'].some(ext => file.name.toLowerCase().endsWith(ext));
+    if (!okExt) {
+        waUploadError.textContent = 'Only .xlsx or .csv files are allowed.';
+        waUploadError.style.display = 'block';
+        return;
+    }
+    selectedFileWa = file;
+    fileNameWa.textContent = file.name;
+    fileChipWa.style.display = 'flex';
+    waUploadError.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('numbers_file', file);
+    fetch('/whatsapp/upload', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                waUploadError.textContent = data.error;
+                waUploadError.style.display = 'block';
+                return;
+            }
+            waSummary.style.display = 'flex';
+            waResetLink.style.display = 'inline-block';
+            waPillTotal.textContent = 'Total: ' + data.total;
+            waPillSent.textContent = 'Sent: ' + data.sent;
+            waPillRemaining.textContent = 'Remaining: ' + data.remaining;
+        })
+        .catch(err => {
+            waUploadError.textContent = 'Upload failed: ' + err;
+            waUploadError.style.display = 'block';
+        });
+}
+
+waResetLink.addEventListener('click', () => {
+    if (!confirm('Are you sure? Old list and its progress will be deleted.')) return;
+    fetch('/whatsapp/reset', { method: 'POST' }).then(() => {
+        selectedFileWa = null;
+        fileChipWa.style.display = 'none';
+        fileInputWa.value = '';
+        refreshWaSummary();
+    });
+});
+
+const waOpenBtn = document.getElementById('waOpenBtn');
+const waOpenError = document.getElementById('waOpenError');
+const waDebugLink = document.getElementById('waDebugLink');
+const waDebugOutput = document.getElementById('waDebugOutput');
+
+waDebugLink.addEventListener('click', () => {
+    fetch('/whatsapp/debug_windows').then(r => r.json()).then(data => {
+        waDebugOutput.style.display = 'block';
+        const browserNames = ['chrome', 'edge', 'firefox', 'brave', 'opera'];
+        const waTitles = data.titles.filter(t => t.toLowerCase().includes('whatsapp'));
+        const browserWa = waTitles.filter(t => browserNames.some(b => t.toLowerCase().includes(b)));
+
+        let text = 'Script can see these windows:\n\n' + data.titles.map(t => '• ' + t).join('\n');
+
+        if (browserWa.length > 0) {
+            text += '\n\n✓ Browser WhatsApp Web tab found: "' + browserWa[0] + '"';
+        } else if (waTitles.length > 0) {
+            text += '\n\n⚠ Only WhatsApp DESKTOP APP found ("' + waTitles[0] + '"), browser WhatsApp Web tab not found.\n' +
+                    'Fix: Drag the WhatsApp Web tab out of Edge/Chrome tab bar to create its own window, so it gets a separate title.';
+        } else {
+            text += '\n\n⚠ No WhatsApp title found. First click "Open WhatsApp Web".';
+        }
+        waDebugOutput.textContent = text;
+    });
+});
+
+waOpenBtn.addEventListener('click', () => {
+    waOpenError.style.display = 'none';
+    waOpenBtn.disabled = true;
+    fetch('/whatsapp/open', { method: 'POST' })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            waOpenBtn.disabled = false;
+            if (!ok) {
+                waOpenError.textContent = data.error || 'Could not open';
+                waOpenError.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            waOpenBtn.disabled = false;
+            waOpenError.textContent = 'Error: ' + err;
+            waOpenError.style.display = 'block';
+        });
+});
+
+waStartBtn.addEventListener('click', () => {
+    const msg = waMessage.value.trim();
+    if (!msg) { waStartError.textContent = 'Write a message first.'; waStartError.style.display = 'block'; return; }
+    waStartError.style.display = 'none';
+    waStartBtn.disabled = true;
+    waLive.style.display = 'block';
+    const wph = document.getElementById('waPlaceholder');
+    if (wph) wph.style.display = 'none';
+    waStatusBadge.className = 'wa-status-badge running';
+    waStatusBadge.textContent = '⏳ Looking for WhatsApp window...';
+    actuallyStart(msg);
+});
+
+function actuallyStart(msg) {
+    fetch('/whatsapp/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+    })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+        if (!ok) {
+            waStartError.textContent = data.error || 'Could not start';
+            waStartError.style.display = 'block';
+            waStartBtn.disabled = false;
+            waLive.style.display = 'none';
+            return;
+        }
+        waStopBtn.disabled = false;
+        pollWaStatus();
+    });
+}
+
+waStopBtn.addEventListener('click', () => {
+    fetch('/whatsapp/stop', { method: 'POST' });
+    waStopBtn.disabled = true;
+});
+
+function pollWaStatus() {
+    waPollTimer = setInterval(() => {
+        fetch('/whatsapp/status').then(r => r.json()).then(data => {
+            waStatusBadge.className = 'wa-status-badge ' + data.status;
+            waStatusBadge.textContent = STATUS_LABELS[data.status] || data.status;
+            waSessionSent.textContent = (data.session_sent || 0) + ' / ' + (data.session_limit || 20);
+            waTotalSent.textContent = (data.total_sent || 0) + ' / ' + (data.total_numbers || 0);
+            waCurrentNumber.textContent = data.current_number ? ('Currently sending: ' + data.current_number) : '';
+
+            if (data.status === 'error' && data.error) {
+                waStartError.textContent = data.error;
+                waStartError.style.display = 'block';
+            }
+
+            if (data.status !== 'running') {
+                clearInterval(waPollTimer);
+                waStartBtn.disabled = false;
+                waStopBtn.disabled = true;
+                refreshWaSummary();
+            }
+        });
+    }, 1000);
+}
+</script>
+
+</body>
+</html>
