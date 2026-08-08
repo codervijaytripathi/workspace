@@ -27,10 +27,8 @@ LOG_FILE = "/tmp/error_log.txt"
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding='utf-8'),
-        logging.StreamHandler(sys.stdout),
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger("mp_bhoj_app")
