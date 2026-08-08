@@ -37,7 +37,16 @@ searchBtn.addEventListener("click", async () => {
             })
         });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        const responseText = await response.text();
+
+        if (!contentType.includes("application/json")) {
+            throw new Error(
+                `API Error (${response.status}): ${responseText.slice(0, 300)}`
+            );
+        }
+
+        const data = JSON.parse(responseText);
 
         if (!response.ok) {
             throw new Error(data.error || "Student lookup failed");
