@@ -12,7 +12,7 @@ def add_cors_headers(response):
     return response
 
 
-@app.route("/mobile/test", methods=["POST", "OPTIONS"])
+@app.route("/api/mobile/test", methods=["POST", "OPTIONS"])
 def mobile_test():
     if request.method == "OPTIONS":
         return "", 204
