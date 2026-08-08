@@ -27,16 +27,16 @@ searchBtn.addEventListener("click", async () => {
     studentStatus.textContent = "Processing...";
 
     try {
-        const response = await fetch("/api/mobile/test", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                enrollment_no: enrollmentNo
-            })
-        });
-
+       
+const response = await fetch("https://workspace-lsgmos1pl-vijay-1096.vercel.app/api/mobile/test", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        enrollment_no: enrollmentNo
+    })
+});
         const contentType = response.headers.get("content-type") || "";
         const responseText = await response.text();
 
