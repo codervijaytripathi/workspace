@@ -27,14 +27,13 @@ searchBtn.addEventListener("click", async () => {
     studentStatus.textContent = "Processing...";
 
     try {
-        const response = await fetch("/mobile/test", {
+        const response = await fetch("/api/mobile/test", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                enrollment_no: enrollmentNo,
-                headless: true
+                enrollment_no: enrollmentNo
             })
         });
 
@@ -63,6 +62,7 @@ searchBtn.addEventListener("click", async () => {
 
         studentName.textContent = "—";
         studentMobile.textContent = "—";
+        studentRoll.textContent = enrollmentNo;
         studentStatus.textContent = "Error";
 
         alert(error.message || "Something went wrong");
