@@ -23,7 +23,7 @@ from pathlib import Path
 from flask import Flask, request, render_template, send_file, jsonify, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
-LOG_FILE = BASE_DIR / "error_log.txt"
+LOG_FILE = "/tmp/error_log.txt"
 
 logging.basicConfig(
     level=logging.INFO,
