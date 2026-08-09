@@ -27,17 +27,23 @@ searchBtn.addEventListener("click", async () => {
     studentStatus.textContent = "Processing...";
 
     try {
-       
-const response = await fetch("https://workspace-lsgmos1pl-vijay-1096.vercel.app/api/mobile/test", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        enrollment_no: enrollmentNo
-    })
-});
-        const contentType = response.headers.get("content-type") || "";
+        const response = await fetch(
+            "https://workspace-yxvh.onrender.com/mobile/test",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    enrollment_no: enrollmentNo,
+                    headless: true
+                })
+            }
+        );
+
+        const contentType =
+            response.headers.get("content-type") || "";
+
         const responseText = await response.text();
 
         if (!contentType.includes("application/json")) {
@@ -49,7 +55,9 @@ const response = await fetch("https://workspace-lsgmos1pl-vijay-1096.vercel.app/
         const data = JSON.parse(responseText);
 
         if (!response.ok) {
-            throw new Error(data.error || "Student lookup failed");
+            throw new Error(
+                data.error || "Student lookup failed"
+            );
         }
 
         const result = data.result;
@@ -74,7 +82,9 @@ const response = await fetch("https://workspace-lsgmos1pl-vijay-1096.vercel.app/
         studentRoll.textContent = enrollmentNo;
         studentStatus.textContent = "Error";
 
-        alert(error.message || "Something went wrong");
+        alert(
+            error.message || "Something went wrong"
+        );
 
     } finally {
         searchBtn.disabled = false;
