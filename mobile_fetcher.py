@@ -69,31 +69,23 @@ def select_by_visible_text_contains(select_el, text_fragment):
             return
     raise NoSuchElementException(f"Option containing '{text_fragment}' not found in dropdown")
 
-
-def setup_driver(headless=False):
+def setup_driver(headless=True):
     options = Options()
+
     if headless:
         options.add_argument("--headless=new")
+
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1400,1000")
     options.add_argument("--disable-notifications")
-options = Options()
 
-if headless:
-    options.add_argument("--headless=new")
+    driver = webdriver.Chrome(
+        options=options
+    )
 
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--disable-gpu")
-options.add_argument("--window-size=1400,1000")
-options.add_argument("--disable-notifications")
-
-driver = webdriver.Chrome(
-    options=options
-)
-
-return driver
     return driver
-
 
 def _wait_for_postback(driver, old_ref, wait):
     try:
