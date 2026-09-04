@@ -572,12 +572,96 @@ footer{
     <script src="bhoj.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const rollInput = document.getElementById('rollNumber');
+    const searchBtn = document.getElementById('searchBtn');
+    const studentName = document.getElementById('studentName');
+    const studentMobile = document.getElementById('studentMobile');
+    const studentRoll = document.getElementById('studentRoll');
+    const studentStatus = document.getElementById('studentStatus');
+    const statusBox = document.querySelector('.student-header .status');
+
     const fileInput = document.getElementById('studentFile');
     const selectedFile = document.getElementById('selectedFile');
     const selectedFileName = document.getElementById('selectedFileName');
     const selectedFileSize = document.getElementById('selectedFileSize');
     const removeFile = document.getElementById('removeFile');
     const selectAllFields = document.getElementById('selectAllFields');
+    const bulkFetchBtn = document.getElementById('bulkFetchBtn');
+
+    function setStatus(text, active = true) {
+        if (!statusBox) return;
+        statusBox.innerHTML = `<span class="status-dot"></span>${text}`;
+        statusBox.style.color = active ? '#86EFAC' : '#FCA5A5';
+        const dot = statusBox.querySelector('.status-dot');
+        if (dot) dot.style.background = active ? 'var(--primary)' : '#EF4444';
+    }
+
+    async function searchStudent() {
+        const enrollmentNo = (rollInput?.value || '').trim();
+
+        if (!enrollmentNo) {
+            setStatus('Enter Number', false);
+            studentName.textContent = '—';
+            studentMobile.textContent = '—';
+            studentRoll.textContent = '—';
+            studentStatus.textContent = 'Please enter a number';
+            studentStatus.classList.remove('active-text');
+            return;
+        }
+
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = '<i class="ti ti-loader-2"></i> Searching...';
+        setStatus('Fetching...', true);
+        studentName.textContent = 'Loading...';
+        studentMobile.textContent = 'Loading...';
+        studentRoll.textContent = enrollmentNo;
+        studentStatus.textContent = 'Fetching from MP Bhoj...';
+        studentStatus.classList.add('active-text');
+
+        try {
+            const response = await fetch('/mobile/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    enrollment_no: enrollmentNo,
+                    headless: true
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'Student lookup failed');
+            }
+
+            const result = data.result || {};
+            studentName.textContent = result['Candidate Name'] || '—';
+            studentMobile.textContent = result['Mobile No'] || '—';
+            studentRoll.textContent = result['Enrollment No'] || enrollmentNo;
+
+            const found = result['Status'] === 'Found';
+            studentStatus.textContent = result['Status'] || (found ? 'Found' : 'Not Found');
+            studentStatus.classList.toggle('active-text', found);
+            setStatus(found ? 'Found' : 'Not Found', found);
+
+        } catch (error) {
+            studentName.textContent = '—';
+            studentMobile.textContent = '—';
+            studentRoll.textContent = enrollmentNo;
+            studentStatus.textContent = error.message || 'Lookup failed';
+            studentStatus.classList.remove('active-text');
+            setStatus('Error', false);
+        } finally {
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = '<i class="ti ti-search"></i> Search';
+        }
+    }
+
+    searchBtn?.addEventListener('click', searchStudent);
+    rollInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchStudent();
+    });
+
     if (fileInput) {
         fileInput.addEventListener('change', () => {
             const file = fileInput.files[0];
@@ -587,20 +671,27 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedFile.hidden = false;
         });
     }
-    if (removeFile) {
-        removeFile.addEventListener('click', () => {
-            fileInput.value = '';
-            selectedFile.hidden = true;
-        });
-    }
-    if (selectAllFields) {
-        selectAllFields.addEventListener('click', () => {
-            const fields = [...document.querySelectorAll('input[name="fields"]')];
-            const shouldSelect = fields.some(field => !field.checked);
-            fields.forEach(field => field.checked = shouldSelect);
-            selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
-        });
-    }
+
+    removeFile?.addEventListener('click', () => {
+        fileInput.value = '';
+        selectedFile.hidden = true;
+    });
+
+    selectAllFields?.addEventListener('click', () => {
+        const fields = [...document.querySelectorAll('input[name="fields"]')];
+        const shouldSelect = fields.some(field => !field.checked);
+        fields.forEach(field => field.checked = shouldSelect);
+        selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
+    });
+
+    // Bulk backend wiring will be added after Single Lookup is verified.
+    bulkFetchBtn?.addEventListener('click', () => {
+        if (!fileInput?.files?.length) {
+            alert('Please select a PDF or Excel file first.');
+            return;
+        }
+        alert('File selected. Bulk fetching will be connected in the next step.');
+    });
 });
 </script>
 </body>
