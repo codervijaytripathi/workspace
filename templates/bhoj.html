@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
         studentStatus.classList.add('active-text');
 
         try {
-            const response = await fetch('/api/mobile/test', {
+            const response = await fetch('/mobile/test', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
