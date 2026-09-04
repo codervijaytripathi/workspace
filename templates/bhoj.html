@@ -356,7 +356,52 @@ footer{
         border-top:0;
     }
 }
-   </style>
+.lookup-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#4f4f59;font-size:10px}
+.lookup-divider:before,.lookup-divider:after{content:"";height:1px;flex:1;background:#25252b}
+.lookup-divider span{padding:0 5px}
+.bulk-lookup{padding:18px;border:1px solid #24242b;border-radius:16px;background:#101013}
+.bulk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bulk-header span,.field-selection-heading span{display:block;color:#777782;font-size:10px}
+.bulk-header h3,.field-selection-heading h3{margin-top:4px;font-size:14px}
+.bulk-header>i{font-size:20px;color:#22C55E}
+.upload-box{min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed #363640;border-radius:13px;background:#0C0C0F;color:#9CA3AF;cursor:pointer;transition:.2s}
+.upload-box:hover{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.025)}
+.upload-box>i{font-size:25px;color:#22C55E;margin-bottom:2px}
+.upload-box strong{color:#E5E7EB;font-size:12px}
+.upload-box span{font-size:10px}
+.upload-box small{margin-top:4px;color:#555560;font-size:9px}
+.selected-file{display:flex;align-items:center;gap:11px;margin-top:10px;padding:10px 12px;border:1px solid #27272e;border-radius:11px;background:#0C0C0F}
+.selected-file>i{color:#22C55E;font-size:20px}
+.selected-file>div{flex:1;min-width:0}
+.selected-file strong,.selected-file span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.selected-file strong{font-size:11px;color:#ddd}
+.selected-file span{margin-top:3px;font-size:9px;color:#666672}
+.selected-file button{width:28px;height:28px;border-radius:8px;background:#18181c;color:#888;display:flex;align-items:center;justify-content:center}
+.selected-file button:hover{color:#fff;background:#24242b}
+.field-selection{margin-top:18px;padding-top:18px;border-top:1px solid #222228}
+.field-selection-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.select-all-btn{padding:6px 9px;border:1px solid #292930;border-radius:8px;background:#151518;color:#86EFAC;font-size:9px}
+.select-all-btn:hover{border-color:rgba(34,197,94,.4)}
+.field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.field-option{display:flex;align-items:center;gap:9px;min-height:42px;padding:9px 10px;border:1px solid #25252c;border-radius:10px;background:#0F0F12;color:#9CA3AF;font-size:10px;cursor:pointer;transition:.18s}
+.field-option:hover{border-color:#34343d;color:#fff}
+.field-option input{position:absolute;opacity:0;pointer-events:none}
+.checkmark{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex:none;border:1px solid #3a3a43;border-radius:5px;background:#0b0b0e;color:transparent;font-size:10px}
+.field-option input:checked~.checkmark{border-color:#22C55E;background:#22C55E;color:#061006}
+.field-option input:checked~span:last-child{color:#fff}
+.bulk-action-row{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:15px;color:#555560;font-size:9px}
+.fetch-bulk-btn{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:10px;background:#22C55E;color:#061006;font-size:11px;font-weight:600;white-space:nowrap}
+.fetch-bulk-btn:hover{background:#34D399}
+@media(max-width:700px){
+    .field-grid{grid-template-columns:repeat(2,1fr)}
+    .bulk-action-row{align-items:stretch;flex-direction:column}
+    .fetch-bulk-btn{justify-content:center}
+}
+@media(max-width:450px){
+    .field-grid{grid-template-columns:1fr}
+    .upload-box{min-height:115px}
+}
+</style>
 </head>
 <body>
     <main class="bhoj-page">
@@ -406,6 +451,86 @@ footer{
             <div class="search-hint">
                 Enter the student's roll number to fetch available information.
             </div>
+            <div class="lookup-divider"><span>OR</span></div>
+            <div class="bulk-lookup">
+                <div class="bulk-header">
+                    <div>
+                        <span>Bulk Student Lookup</span>
+                        <h3>Upload PDF or Excel</h3>
+                    </div>
+                    <i class="ti ti-file-spreadsheet"></i>
+                </div>
+                <label class="upload-box" for="studentFile">
+                    <i class="ti ti-cloud-upload"></i>
+                    <strong>Drop PDF or Excel file here</strong>
+                    <span>or click to browse</span>
+                    <small>PDF • XLS • XLSX</small>
+                    <input type="file" id="studentFile" accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+                </label>
+                <div class="selected-file" id="selectedFile" hidden>
+                    <i class="ti ti-file"></i>
+                    <div>
+                        <strong id="selectedFileName">No file selected</strong>
+                        <span id="selectedFileSize"></span>
+                    </div>
+                    <button type="button" id="removeFile" aria-label="Remove file">
+                        <i class="ti ti-x"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="field-selection">
+                <div class="field-selection-heading">
+                    <div>
+                        <span>Information to Fetch</span>
+                        <h3>Select the details you need</h3>
+                    </div>
+                    <button type="button" class="select-all-btn" id="selectAllFields">Select All</button>
+                </div>
+                <div class="field-grid">
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="name" checked>
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Name</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="father_name" checked>
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Father's Name</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="mobile" checked>
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Mobile Number</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="enrollment">
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Enrollment Number</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="course">
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Course</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="dob">
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Date of Birth</span>
+                    </label>
+                    <label class="field-option">
+                        <input type="checkbox" name="fields" value="study_centre">
+                        <span class="checkmark"><i class="ti ti-check"></i></span>
+                        <span>Study Centre</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bulk-action-row">
+                <span>For bulk files, roll numbers will be extracted automatically.</span>
+                <button type="button" class="fetch-bulk-btn" id="bulkFetchBtn">
+                    <i class="ti ti-player-play"></i>
+                    Start Fetch
+                </button>
+            </div>
         </section>
         <section class="student-card">
             <div class="student-header">
@@ -445,5 +570,38 @@ footer{
         </footer>
     </main>
     <script src="bhoj.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('studentFile');
+    const selectedFile = document.getElementById('selectedFile');
+    const selectedFileName = document.getElementById('selectedFileName');
+    const selectedFileSize = document.getElementById('selectedFileSize');
+    const removeFile = document.getElementById('removeFile');
+    const selectAllFields = document.getElementById('selectAllFields');
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            selectedFileName.textContent = file.name;
+            selectedFileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            selectedFile.hidden = false;
+        });
+    }
+    if (removeFile) {
+        removeFile.addEventListener('click', () => {
+            fileInput.value = '';
+            selectedFile.hidden = true;
+        });
+    }
+    if (selectAllFields) {
+        selectAllFields.addEventListener('click', () => {
+            const fields = [...document.querySelectorAll('input[name="fields"]')];
+            const shouldSelect = fields.some(field => !field.checked);
+            fields.forEach(field => field.checked = shouldSelect);
+            selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
+        });
+    }
+});
+</script>
 </body>
 </html>
