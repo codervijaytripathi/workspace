@@ -1,813 +1,607 @@
+"""
+MP Bhoj PDF -> Excel + Student Lookup local Flask app.
+
+Important:
+- Single lookup endpoint is available at BOTH:
+    POST /mobile/test
+    POST /api/mobile/test
+  so frontend/API path mismatch no longer causes the previous 405 problem.
+- Student lookup supports UG and PG.
+- Bulk lookup supports PDF/XLS/XLSX/CSV and selected fields.
+"""
+
+import sys
+import uuid
+import logging
+import threading
+import traceback
 from pathlib import Path
 
-code = r'''from flask import Flask, request, jsonify
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
-import re
-from urllib.parse import urljoin
+from flask import Flask, request, render_template, send_file, jsonify, url_for
+from werkzeug.exceptions import HTTPException
+
+BASE_DIR = Path(__file__).resolve().parent
+LOG_FILE = BASE_DIR / "error_log.txt"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding="utf-8"),
+        logging.StreamHandler(sys.stdout),
+    ],
+)
+logger = logging.getLogger("mp_bhoj_app")
+
+try:
+    from extractor import extract_pdf_to_dataframe, save_to_excel
+    import mobile_fetcher
+    import whatsapp_module
+except Exception:
+    logger.error("Startup import fail hua:\n" + traceback.format_exc())
+    raise
+
+UPLOAD_DIR = BASE_DIR / "uploads"
+OUTPUT_DIR = BASE_DIR / "outputs"
+DEBUG_DIR = BASE_DIR / "debug"
+
+UPLOAD_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(exist_ok=True)
+DEBUG_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
-BHOJ_URL = "https://mpbou.mponline.gov.in/portal/Services/BHOJ/BrochureFee/Migration.aspx"
+JOBS = {}
+MOBILE_JOBS = {}
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/139.0.0.0 Safari/537.36"
-    ),
-    "Accept": (
-        "text/html,application/xhtml+xml,application/xml;"
-        "q=0.9,image/avif,image/webp,*/*;q=0.8"
-    ),
-    "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
-    "Connection": "keep-alive",
+WA_STATUS = {
+    "status": "idle",
+    "session_sent": 0,
+    "session_limit": whatsapp_module.SESSION_LIMIT,
+    "total_sent": 0,
+    "total_numbers": 0,
+    "current_number": None,
+    "error": None,
 }
-
-TIMEOUT = 30
-
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    return response
+WA_STOP_EVENT = threading.Event()
 
 
-def clean_text(value):
-    """Normalize scraped text."""
-    if value is None:
-        return ""
-    return re.sub(r"\s+", " ", str(value)).strip()
+@app.errorhandler(Exception)
+def handle_any_error(e):
+    if isinstance(e, HTTPException):
+        return e
+    logger.error(
+        f"UNHANDLED ERROR on {request.path}:\n" + traceback.format_exc()
+    )
+    return jsonify({
+        "error": f"Server error: {e}. Poora detail 'error_log.txt' me hai."
+    }), 500
 
 
-def normalize_course_type(value):
-    """
-    Accept common UI values:
-    UG / PG / Under Graduate / Post Graduate
-    """
-    value = clean_text(value).upper()
+# ----------------------------------------------------------------------
+# Existing PDF -> Excel routes
+# ----------------------------------------------------------------------
 
-    if value in {"PG", "POST GRADUATE", "POST-GRADUATE", "POSTGRADUATE"}:
-        return "PG"
+def process_job(job_id, pdf_path):
+    JOBS[job_id]["status"] = "processing"
+    try:
+        def progress_cb(current, total):
+            JOBS[job_id]["current_page"] = current
+            JOBS[job_id]["total_pages"] = total
 
-    return "UG"
-
-
-def hidden_fields(soup):
-    """
-    Collect ASP.NET hidden fields required for postbacks.
-    """
-    data = {}
-
-    for element in soup.select("input[type='hidden']"):
-        name = element.get("name")
-        if name:
-            data[name] = element.get("value", "")
-
-    return data
-
-
-def label_text(element):
-    """
-    Get nearby label/container text for an input/select.
-    """
-    parent = element.parent
-
-    for _ in range(4):
-        if parent is None:
-            break
-
-        text = clean_text(parent.get_text(" ", strip=True))
-        if text:
-            return text
-
-        parent = parent.parent
-
-    return ""
-
-
-def find_select(soup, text):
-    """
-    Find a select element by matching its id/name/nearby text.
-    """
-    needle = clean_text(text).lower()
-
-    # First try id/name.
-    for select in soup.find_all("select"):
-        ident = clean_text(select.get("id", "")).lower()
-        name = clean_text(select.get("name", "")).lower()
-
-        if needle in ident or needle in name:
-            return select
-
-    # Then try nearby label/container text.
-    for select in soup.find_all("select"):
-        nearby = label_text(select).lower()
-
-        if needle in nearby:
-            return select
-
-    return None
-
-
-def find_input(soup, text):
-    """
-    Find an input/textarea by matching id/name/placeholder or nearby text.
-    """
-    needle = clean_text(text).lower()
-
-    for element in soup.find_all(["input", "textarea"]):
-        ident = clean_text(element.get("id", "")).lower()
-        name = clean_text(element.get("name", "")).lower()
-        placeholder = clean_text(element.get("placeholder", "")).lower()
-
-        if needle in ident or needle in name or needle in placeholder:
-            return element
-
-    for element in soup.find_all(["input", "textarea"]):
-        nearby = label_text(element).lower()
-
-        if needle in nearby:
-            return element
-
-    return None
-
-
-def find_input_by_candidates(soup, candidates):
-    """
-    Try multiple names/labels for a field.
-    """
-    for candidate in candidates:
-        element = find_input(soup, candidate)
-        if element is not None:
-            return element
-
-    return None
-
-
-def get_option(select, wanted):
-    """
-    Find an option using visible text first, then value.
-    """
-    wanted = clean_text(wanted).lower()
-
-    options = select.find_all("option")
-
-    # Exact visible text.
-    for option in options:
-        text = clean_text(option.get_text(" ", strip=True)).lower()
-        value = clean_text(option.get("value", "")).lower()
-
-        if text == wanted or value == wanted:
-            return option
-
-    # Contains match.
-    for option in options:
-        text = clean_text(option.get_text(" ", strip=True)).lower()
-        value = clean_text(option.get("value", "")).lower()
-
-        if wanted in text or wanted in value:
-            return option
-
-    return None
-
-
-def get_postback_target(element):
-    """
-    Extract __doPostBack target from onchange/onclick.
-    """
-    if element is None:
-        return None
-
-    for attr in ("onchange", "onclick"):
-        script = element.get(attr, "")
-        if not script:
-            continue
-
-        # __doPostBack('target','argument')
-        match = re.search(
-            r"__doPostBack\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]*)['\"]\s*\)",
-            script,
-            flags=re.I,
+        df, info = extract_pdf_to_dataframe(
+            str(pdf_path), progress_callback=progress_cb
         )
 
-        if match:
-            return match.group(1), match.group(2)
+        if df.empty:
+            JOBS[job_id]["status"] = "error"
+            JOBS[job_id]["error"] = (
+                "Koi record extract nahi hua. PDF expected MP Bhoj format "
+                "se match nahi karta."
+            )
+            return
 
-    return None
+        output_filename = f"{job_id}.xlsx"
+        output_path = OUTPUT_DIR / output_filename
+        save_to_excel(df, str(output_path))
 
+        JOBS[job_id].update({
+            "status": "done",
+            "info": info,
+            "output_file": output_filename,
+            "preview": df.head(15).to_dict(orient="records"),
+            "columns": list(df.columns),
+        })
 
-def postback(session, soup, target, extra=None):
-    """
-    Perform an ASP.NET postback while preserving hidden fields.
-    """
-    data = hidden_fields(soup)
-
-    if extra:
-        data.update(extra)
-
-    # ASP.NET postback target.
-    data["__EVENTTARGET"] = target
-    data["__EVENTARGUMENT"] = ""
-
-    # Remove submit button values that may interfere.
-    for key in list(data.keys()):
-        if key.lower().startswith("__"):
-            continue
-
-    response = session.post(
-        BHOJ_URL,
-        data=data,
-        headers=HEADERS,
-        timeout=TIMEOUT,
-    )
-
-    response.raise_for_status()
-
-    return BeautifulSoup(response.text, "html.parser")
+    except Exception as e:
+        JOBS[job_id]["status"] = "error"
+        JOBS[job_id]["error"] = str(e)
+        JOBS[job_id]["traceback"] = traceback.format_exc()
 
 
-def submit_form(session, soup, extra):
-    """
-    Submit the current form without guessing an endpoint.
-    """
-    form = soup.find("form")
-
-    if not form:
-        return soup
-
-    action = form.get("action") or BHOJ_URL
-    action = urljoin(BHOJ_URL, action)
-
-    data = hidden_fields(soup)
-    data.update(extra)
-
-    response = session.post(
-        action,
-        data=data,
-        headers=HEADERS,
-        timeout=TIMEOUT,
-    )
-
-    response.raise_for_status()
-
-    return BeautifulSoup(response.text, "html.parser")
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 
-def select_course_type(session, soup, course_type):
-    """
-    Select UG or PG from the portal's Course Type dropdown.
+@app.route("/upload", methods=["POST"])
+def upload():
+    if "pdf_file" not in request.files:
+        return jsonify({"error": "Koi file nahi mili"}), 400
 
-    We intentionally match the live option text/value instead of hard-coding
-    an internal option value.
-    """
-    course_type = normalize_course_type(course_type)
+    file = request.files["pdf_file"]
+    if not file.filename:
+        return jsonify({"error": "Koi file select nahi ki"}), 400
 
-    select = find_select(soup, "course")
+    if not file.filename.lower().endswith(".pdf"):
+        return jsonify({"error": "Sirf .pdf file allowed hai"}), 400
 
-    if select is None:
-        return soup, False, "Course Type dropdown not found"
+    job_id = uuid.uuid4().hex[:12]
+    pdf_path = UPLOAD_DIR / f"{job_id}.pdf"
+    file.save(str(pdf_path))
 
-    option = get_option(select, course_type)
-
-    # If exact UG/PG text is not found, inspect options for likely labels.
-    if option is None:
-        for candidate in select.find_all("option"):
-            text = clean_text(candidate.get_text(" ", strip=True)).upper()
-
-            if course_type == "UG" and (
-                "UNDER" in text or text.startswith("UG")
-            ):
-                option = candidate
-                break
-
-            if course_type == "PG" and (
-                "POST" in text or text.startswith("PG")
-            ):
-                option = candidate
-                break
-
-    if option is None:
-        available = [
-            clean_text(o.get_text(" ", strip=True))
-            for o in select.find_all("option")
-            if clean_text(o.get_text(" ", strip=True))
-        ]
-
-        return (
-            soup,
-            False,
-            f"{course_type} option not found. Available: {available}",
-        )
-
-    select_name = select.get("name")
-    option_value = option.get("value", "")
-
-    if not select_name:
-        return soup, False, "Course Type select has no name"
-
-    postback_target = get_postback_target(select)
-
-    if postback_target:
-        target, argument = postback_target
-
-        data = {
-            select_name: option_value,
-            "__EVENTTARGET": target,
-            "__EVENTARGUMENT": argument,
-        }
-
-        new_soup = postback(session, soup, target, data)
-        return new_soup, True, ""
-
-    # Some ASP.NET pages update through normal form submission.
-    new_soup = submit_form(
-        session,
-        soup,
-        {
-            select_name: option_value,
-        },
-    )
-
-    return new_soup, True, ""
-
-
-def select_apply_for(session, soup):
-    """
-    Select No Objection Certificate if the portal exposes Apply For.
-    """
-    select = find_select(soup, "apply")
-
-    if select is None:
-        return soup, True, ""
-
-    option = get_option(select, "No Objection Certificate")
-
-    if option is None:
-        # Try common shorter wording.
-        option = get_option(select, "No Objection")
-
-    if option is None:
-        # Do not fail the whole request if the portal changed this dropdown.
-        return soup, True, ""
-
-    select_name = select.get("name")
-
-    if not select_name:
-        return soup, True, ""
-
-    option_value = option.get("value", "")
-    postback_target = get_postback_target(select)
-
-    if postback_target:
-        target, argument = postback_target
-
-        data = {
-            select_name: option_value,
-            "__EVENTTARGET": target,
-            "__EVENTARGUMENT": argument,
-        }
-
-        return postback(session, soup, target, data), True, ""
-
-    return (
-        submit_form(
-            session,
-            soup,
-            {
-                select_name: option_value,
-            },
-        ),
-        True,
-        "",
-    )
-
-
-def set_enrollment_number(session, soup, enrollment_no):
-    """
-    Put the enrollment number into the live ASP.NET form.
-
-    The portal can trigger a postback when the user tabs out of this field,
-    so we try the field's onchange/blur postback first and fall back to
-    normal form submission.
-    """
-    field = find_input_by_candidates(
-        soup,
-        [
-            "enrollment",
-            "enrollmentno",
-            "enrollment_no",
-            "enroll",
-        ],
-    )
-
-    if field is None:
-        return soup, False, "Enrollment No field not found"
-
-    name = field.get("name")
-
-    if not name:
-        return soup, False, "Enrollment No field has no name"
-
-    extra = {
-        name: enrollment_no,
+    JOBS[job_id] = {
+        "status": "queued",
+        "current_page": 0,
+        "total_pages": 0,
     }
 
-    postback_target = get_postback_target(field)
+    threading.Thread(
+        target=process_job,
+        args=(job_id, pdf_path),
+        daemon=True,
+    ).start()
 
-    if postback_target:
-        target, argument = postback_target
-
-        extra["__EVENTTARGET"] = target
-        extra["__EVENTARGUMENT"] = argument
-
-        return postback(session, soup, target, extra), True, ""
-
-    # Sometimes the onchange is attached to a surrounding element.
-    parent = field.parent
-
-    for _ in range(3):
-        if parent is None:
-            break
-
-        postback_target = get_postback_target(parent)
-
-        if postback_target:
-            target, argument = postback_target
-
-            extra["__EVENTTARGET"] = target
-            extra["__EVENTARGUMENT"] = argument
-
-            return postback(session, soup, target, extra), True, ""
-
-        parent = parent.parent
-
-    return (
-        submit_form(
-            session,
-            soup,
-            {
-                name: enrollment_no,
-            },
-        ),
-        True,
-        "",
-    )
+    return jsonify({"job_id": job_id})
 
 
-def extract_value(soup, candidates):
-    """
-    Read a field's value after the portal has populated it.
-    """
-    field = find_input_by_candidates(soup, candidates)
+@app.route("/status/<job_id>")
+def status(job_id):
+    job = JOBS.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
 
-    if field is None:
-        return ""
-
-    value = field.get("value")
-
-    if value:
-        return clean_text(value)
-
-    return clean_text(field.get_text(" ", strip=True))
-
-
-def extract_field_by_row_label(soup, label_candidates):
-    """
-    Fallback for portals that render populated values inside table rows/divs
-    instead of input elements.
-    """
-    wanted = [clean_text(x).lower() for x in label_candidates]
-
-    for row in soup.find_all(["tr", "div", "li"]):
-        text = clean_text(row.get_text(" ", strip=True))
-
-        if not text:
-            continue
-
-        lower = text.lower()
-
-        for label in wanted:
-            if label in lower:
-                # Look for a value cell.
-                cells = row.find_all(["td", "th"])
-
-                if len(cells) >= 2:
-                    value = clean_text(cells[-1].get_text(" ", strip=True))
-                    if value.lower() != label:
-                        return value
-
-                # Otherwise remove the label from the visible text.
-                cleaned = re.sub(
-                    re.escape(label),
-                    "",
-                    text,
-                    flags=re.I,
-                )
-                cleaned = clean_text(cleaned).strip(" :-")
-                if cleaned:
-                    return cleaned
-
-    return ""
-
-
-def extract_student_data(soup, enrollment_no, course_type):
-    """
-    Extract currently available student fields from the portal.
-    """
-    candidate_name = extract_value(
-        soup,
-        [
-            "candidate name",
-            "candidatename",
-            "candidate_name",
-            "name",
-        ],
-    )
-
-    if not candidate_name:
-        candidate_name = extract_field_by_row_label(
-            soup,
-            [
-                "Candidate's Name",
-                "Candidate Name",
-            ],
-        )
-
-    father_name = extract_value(
-        soup,
-        [
-            "father",
-            "fathername",
-            "father name",
-            "father_name",
-        ],
-    )
-
-    if not father_name:
-        father_name = extract_field_by_row_label(
-            soup,
-            [
-                "Father's Name",
-                "Father Name",
-            ],
-        )
-
-    mobile_no = extract_value(
-        soup,
-        [
-            "mobile",
-            "mobileno",
-            "mobile no",
-            "mobile_no",
-        ],
-    )
-
-    if not mobile_no:
-        mobile_no = extract_field_by_row_label(
-            soup,
-            [
-                "Mobile No",
-                "Mobile Number",
-            ],
-        )
-
-    dob = extract_value(
-        soup,
-        [
-            "date of birth",
-            "dob",
-            "dateofbirth",
-        ],
-    )
-
-    if not dob:
-        dob = extract_field_by_row_label(
-            soup,
-            [
-                "Date Of Birth",
-                "Date of Birth",
-            ],
-        )
-
-    regional_centre = extract_value(
-        soup,
-        [
-            "regional centre",
-            "regionalcenter",
-            "regional_centre",
-            "regionalcentre",
-        ],
-    )
-
-    if not regional_centre:
-        regional_centre = extract_field_by_row_label(
-            soup,
-            [
-                "Regional Centre",
-                "Regional Center",
-            ],
-        )
-
-    course = extract_value(
-        soup,
-        [
-            "course",
-        ],
-    )
-
-    if not course:
-        course = extract_field_by_row_label(
-            soup,
-            [
-                "Course",
-            ],
-        )
-
-    # Detect whether the page appears to have populated data.
-    body_text = clean_text(soup.get_text(" ", strip=True))
-
-    not_found_markers = [
-        "record not found",
-        "no record found",
-        "student not found",
-        "data not found",
-        "invalid enrollment",
-        "not available",
-    ]
-
-    is_not_found = any(
-        marker in body_text.lower()
-        for marker in not_found_markers
-    )
-
-    status = "Found" if (
-        not is_not_found
-        and (candidate_name or mobile_no or father_name)
-    ) else "Not Found"
-
-    return {
-        "Enrollment No": enrollment_no,
-        "Course Type": course_type,
-        "Candidate Name": candidate_name,
-        "Father's Name": father_name,
-        "Mobile No": mobile_no,
-        "Date Of Birth": dob,
-        "Regional Centre": regional_centre,
-        "Course": course,
-        "Status": status,
-        "Current Year": datetime.now().year,
+    resp = {
+        "status": job["status"],
+        "current_page": job.get("current_page", 0),
+        "total_pages": job.get("total_pages", 0),
     }
 
+    if job["status"] == "done":
+        resp.update({
+            "info": job["info"],
+            "preview": job["preview"],
+            "columns": job["columns"],
+            "download_url": url_for("download", job_id=job_id),
+        })
 
-def fetch_student(enrollment_no, course_type="UG"):
-    """
-    Fetch one student.
+    if job["status"] == "error":
+        resp["error"] = job.get("error", "Unknown error")
 
-    course_type can be:
-        UG
-        PG
-    """
-    enrollment_no = clean_text(enrollment_no)
+    return jsonify(resp)
+
+
+@app.route("/download/<job_id>")
+def download(job_id):
+    job = JOBS.get(job_id)
+    if not job or job["status"] != "done":
+        return "File abhi ready nahi hai", 404
+
+    return send_file(
+        str(OUTPUT_DIR / job["output_file"]),
+        as_attachment=True,
+        download_name="MP_Bhoj_Result_Converted.xlsx",
+    )
+
+
+# ----------------------------------------------------------------------
+# Student Lookup - Single
+# ----------------------------------------------------------------------
+
+def _student_test_impl():
+    data = request.get_json(silent=True) or {}
+
+    enrollment_no = str(data.get("enrollment_no") or "").strip()
+    course_type = mobile_fetcher.normalize_course_type(
+        data.get("course_type", "UG")
+    )
+    selected_fields = data.get("selected_fields")
+
+    if selected_fields is not None and not isinstance(selected_fields, list):
+        selected_fields = None
+
+    headless = bool(data.get("headless", True))
 
     if not enrollment_no:
-        raise ValueError("Enrollment number is required")
+        return jsonify({"success": False, "error": "Enrollment number khali hai"}), 400
 
-    course_type = normalize_course_type(course_type)
+    screenshot_name = f"test_{uuid.uuid4().hex[:8]}.png"
+    screenshot_path = DEBUG_DIR / screenshot_name
 
-    session = requests.Session()
-    session.headers.update(HEADERS)
+    try:
+        logger.info(
+            "Single lookup: enrollment=%s course_type=%s",
+            enrollment_no,
+            course_type,
+        )
 
-    # Initial page.
-    response = session.get(
-        BHOJ_URL,
-        timeout=TIMEOUT,
-    )
-    response.raise_for_status()
+        result = mobile_fetcher.test_single(
+            enrollment_no,
+            course_type=course_type,
+            selected_fields=selected_fields,
+            headless=headless,
+            screenshot_path=screenshot_path,
+        )
 
-    soup = BeautifulSoup(response.text, "html.parser")
+        result["Course Type"] = course_type
+        return jsonify({
+            "success": True,
+            "result": result,
+        })
 
-    # 1. Course Type: UG or PG.
-    soup, ok, error = select_course_type(
-        session,
-        soup,
-        course_type,
-    )
+    except Exception as e:
+        logger.error("Student lookup error:\n" + traceback.format_exc())
 
-    if not ok:
-        raise RuntimeError(error)
+        shot_url = None
+        if screenshot_path.exists():
+            shot_url = url_for(
+                "debug_screenshot",
+                filename=screenshot_name,
+            )
 
-    # 2. Apply For.
-    soup, ok, error = select_apply_for(
-        session,
-        soup,
-    )
-
-    if not ok:
-        raise RuntimeError(error)
-
-    # 3. Enrollment No.
-    soup, ok, error = set_enrollment_number(
-        session,
-        soup,
-        enrollment_no,
-    )
-
-    if not ok:
-        raise RuntimeError(error)
-
-    # 4. Extract the returned student data.
-    result = extract_student_data(
-        soup,
-        enrollment_no,
-        course_type,
-    )
-
-    return result
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "screenshot_url": shot_url,
+        }), 500
 
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify(
-        {
-            "status": "online",
-            "service": "MP Bhoj Student API",
-            "supported_course_types": ["UG", "PG"],
-            "year": datetime.now().year,
-        }
-    )
-
-
-@app.route("/api/mobile/test", methods=["POST", "OPTIONS"])
+@app.route("/mobile/test", methods=["POST", "OPTIONS"])
 def mobile_test():
     if request.method == "OPTIONS":
         return "", 204
+    return _student_test_impl()
 
-    data = request.get_json(silent=True) or {}
 
-    enrollment_no = str(
-        data.get("enrollment_no", "")
-    ).strip()
+@app.route("/api/mobile/test", methods=["POST", "OPTIONS"])
+def api_mobile_test():
+    """
+    Compatibility alias.
+    This prevents the old frontend from receiving HTTP 405 when it calls
+    /api/mobile/test.
+    """
+    if request.method == "OPTIONS":
+        return "", 204
+    return _student_test_impl()
 
-    course_type = normalize_course_type(
-        data.get("course_type", "UG")
-    )
 
-    if not enrollment_no:
-        return jsonify(
-            {
-                "success": False,
-                "error": "Enrollment number is required",
-            }
-        ), 400
+@app.route("/debug/<filename>")
+def debug_screenshot(filename):
+    path = DEBUG_DIR / filename
+    if not path.exists():
+        return "Not found", 404
+    return send_file(str(path))
+
+
+# ----------------------------------------------------------------------
+# Student Lookup - Bulk
+# ----------------------------------------------------------------------
+
+def process_mobile_job(job_id, input_path, course_type, selected_fields, headless):
+    job = MOBILE_JOBS[job_id]
+    job["status"] = "processing"
+
+    driver = None
+    results = []
 
     try:
-        result = fetch_student(
-            enrollment_no,
-            course_type=course_type,
-        )
+        numbers = mobile_fetcher.read_enrollment_numbers(input_path)
 
-        return jsonify(
-            {
-                "success": True,
-                "course_type": course_type,
-                "result": result,
-            }
-        )
+        if not numbers:
+            job["status"] = "error"
+            job["error"] = "Koi enrollment/roll number nahi mila is file me."
+            return
 
-    except requests.RequestException as e:
-        return jsonify(
-            {
-                "success": False,
-                "error": (
-                    "MP Bhoj connection failed: "
-                    + str(e)
-                ),
-            }
-        ), 502
+        course_type = mobile_fetcher.normalize_course_type(course_type)
+
+        job.update({
+            "total": len(numbers),
+            "current": 0,
+            "found": 0,
+            "failed": 0,
+            "current_number": None,
+            "course_type": course_type,
+        })
+
+        driver = mobile_fetcher.setup_driver(headless=headless)
+        mobile_fetcher.setup_form(driver, course_type=course_type)
+
+        for i, enrollment_no in enumerate(numbers, 1):
+            job["current"] = i
+            job["current_number"] = enrollment_no
+
+            try:
+                raw_result = mobile_fetcher.fetch_one(driver, enrollment_no)
+                result = mobile_fetcher.filter_result(
+                    raw_result,
+                    selected_fields,
+                )
+                result["Course Type"] = course_type
+
+                if raw_result.get("Status") == "Found":
+                    job["found"] += 1
+                else:
+                    job["failed"] += 1
+
+            except Exception as e:
+                result = {
+                    "Course Type": course_type,
+                    "Enrollment No": enrollment_no,
+                    "Status": f"Error: {e}",
+                }
+                job["failed"] += 1
+
+            results.append(result)
+            job["preview"] = results[:15]
+
+            # Save periodically so a long batch has a usable partial file.
+            if i % 10 == 0 or i == len(numbers):
+                out_path = OUTPUT_DIR / f"{job_id}_mobile.xlsx"
+                mobile_fetcher.save_results_to_excel(results, str(out_path))
+
+        out_path = OUTPUT_DIR / f"{job_id}_mobile.xlsx"
+        mobile_fetcher.save_results_to_excel(results, str(out_path))
+
+        job.update({
+            "status": "done",
+            "output_file": f"{job_id}_mobile.xlsx",
+            "preview": results[:15],
+            "total_processed": len(results),
+            "download_url": url_for("mobile_download", job_id=job_id),
+        })
 
     except Exception as e:
-        return jsonify(
-            {
-                "success": False,
-                "error": str(e),
-            }
-        ), 500
+        job["status"] = "error"
+        job["error"] = str(e)
+        job["traceback"] = traceback.format_exc()
+        logger.error("Bulk mobile job error:\n" + traceback.format_exc())
+
+    finally:
+        if driver:
+            try:
+                driver.quit()
+            except Exception:
+                pass
+
+
+@app.route("/mobile/upload", methods=["POST"])
+def mobile_upload():
+    if "data_file" not in request.files:
+        return jsonify({"error": "Koi file nahi mili"}), 400
+
+    file = request.files["data_file"]
+    if not file.filename:
+        return jsonify({"error": "Koi file select nahi ki"}), 400
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in (".xlsx", ".xls", ".csv", ".pdf"):
+        return jsonify({
+            "error": "Sirf .xlsx, .xls, .csv ya .pdf file allowed hai"
+        }), 400
+
+    course_type = mobile_fetcher.normalize_course_type(
+        request.form.get("course_type", "UG")
+    )
+
+    headless = request.form.get("headless", "true").lower() == "true"
+
+    fields_raw = request.form.get("selected_fields", "")
+    selected_fields = [
+        item.strip()
+        for item in fields_raw.split(",")
+        if item.strip()
+    ]
+
+    job_id = uuid.uuid4().hex[:12]
+    input_path = UPLOAD_DIR / f"{job_id}{ext}"
+    file.save(str(input_path))
+
+    MOBILE_JOBS[job_id] = {
+        "status": "queued",
+        "current": 0,
+        "total": 0,
+        "found": 0,
+        "failed": 0,
+        "current_number": None,
+        "course_type": course_type,
+        "selected_fields": selected_fields,
+    }
+
+    threading.Thread(
+        target=process_mobile_job,
+        args=(
+            job_id,
+            input_path,
+            course_type,
+            selected_fields,
+            headless,
+        ),
+        daemon=True,
+    ).start()
+
+    return jsonify({
+        "success": True,
+        "job_id": job_id,
+        "course_type": course_type,
+    })
+
+
+@app.route("/mobile/status/<job_id>")
+def mobile_status(job_id):
+    job = MOBILE_JOBS.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    resp = {
+        "status": job.get("status"),
+        "current": job.get("current", 0),
+        "total": job.get("total", 0),
+        "found": job.get("found", 0),
+        "failed": job.get("failed", 0),
+        "current_number": job.get("current_number"),
+        "course_type": job.get("course_type"),
+    }
+
+    if job.get("status") == "done":
+        resp.update({
+            "preview": job.get("preview", []),
+            "total_processed": job.get("total_processed", 0),
+            "download_url": url_for(
+                "mobile_download",
+                job_id=job_id,
+            ),
+        })
+
+    if job.get("status") == "error":
+        resp["error"] = job.get("error", "Unknown error")
+
+    return jsonify(resp)
+
+
+@app.route("/mobile/download/<job_id>")
+def mobile_download(job_id):
+    job = MOBILE_JOBS.get(job_id)
+    if not job or job.get("status") != "done":
+        return "File abhi ready nahi hai", 404
+
+    return send_file(
+        str(OUTPUT_DIR / job["output_file"]),
+        as_attachment=True,
+        download_name="MP_Bhoj_Student_Results.xlsx",
+    )
+
+
+# ----------------------------------------------------------------------
+# Existing WhatsApp routes
+# ----------------------------------------------------------------------
+
+@app.route("/whatsapp/open", methods=["POST"])
+def whatsapp_open():
+    try:
+        whatsapp_module.open_whatsapp_web()
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/whatsapp/debug_windows")
+def whatsapp_debug_windows():
+    return jsonify({"titles": whatsapp_module.list_all_window_titles()})
+
+
+@app.route("/whatsapp/summary")
+def whatsapp_summary():
+    return jsonify(whatsapp_module.job_summary())
+
+
+@app.route("/whatsapp/upload", methods=["POST"])
+def whatsapp_upload():
+    if "numbers_file" not in request.files:
+        return jsonify({"error": "Koi file nahi mili"}), 400
+
+    file = request.files["numbers_file"]
+    if not file.filename:
+        return jsonify({"error": "Koi file select nahi ki"}), 400
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in (".xlsx", ".xls", ".csv"):
+        return jsonify({"error": "Sirf .xlsx, .xls ya .csv file allowed hai"}), 400
+
+    save_path = UPLOAD_DIR / f"wa_numbers{ext}"
+    file.save(str(save_path))
+
+    try:
+        job = whatsapp_module.create_job_from_file(save_path)
+    except Exception as e:
+        logger.error("whatsapp_upload me error:\n" + traceback.format_exc())
+        return jsonify({"error": f"File padhne me error: {e}"}), 400
+
+    if len(job.get("numbers", [])) == 0:
+        return jsonify({
+            "error": (
+                'Is file me koi valid mobile number nahi mila. '
+                'Column header "Number"/"Mobile"/"Phone" hona chahiye.'
+            )
+        }), 400
+
+    return jsonify(whatsapp_module.job_summary())
+
+
+@app.route("/whatsapp/reset", methods=["POST"])
+def whatsapp_reset():
+    whatsapp_module.reset_job()
+    return jsonify({"ok": True})
+
+
+@app.route("/whatsapp/start", methods=["POST"])
+def whatsapp_start():
+    if WA_STATUS.get("status") == "running":
+        return jsonify({"error": "Pehle se chal raha hai"}), 400
+
+    data = request.get_json(silent=True) or {}
+    message = (data.get("message") or "").strip()
+
+    if not message:
+        return jsonify({"error": "Message khali hai"}), 400
+
+    summary = whatsapp_module.job_summary()
+    if not summary.get("exists") or summary.get("remaining", 0) <= 0:
+        return jsonify({
+            "error": "Bhejne ke liye koi number nahi bacha / list upload nahi hui"
+        }), 400
+
+    WA_STOP_EVENT.clear()
+    WA_STATUS.update({
+        "status": "running",
+        "session_sent": 0,
+        "error": None,
+        "current_number": None,
+    })
+
+    def _safe_run_session():
+        try:
+            whatsapp_module.run_session(
+                message,
+                WA_STATUS,
+                WA_STOP_EVENT,
+            )
+        except Exception:
+            logger.error("WhatsApp session crash:\n" + traceback.format_exc())
+            WA_STATUS["status"] = "error"
+            WA_STATUS["error"] = (
+                'Automation crash ho gaya - "error_log.txt" check karein.'
+            )
+
+    threading.Thread(target=_safe_run_session, daemon=True).start()
+    return jsonify({"ok": True})
+
+
+@app.route("/whatsapp/stop", methods=["POST"])
+def whatsapp_stop():
+    WA_STOP_EVENT.set()
+    return jsonify({"ok": True})
+
+
+@app.route("/whatsapp/status")
+def whatsapp_status():
+    return jsonify(WA_STATUS)
 
 
 if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=5000,
-        debug=False,
-    )
-'''
-
-path = Path("/mnt/data/api_index_ug_pg.py")
-path.write_text(code, encoding="utf-8")
-
-print(f"Created: {path}")
-print("This file supports course_type=UG or PG in POST /api/mobile/test.")
+    print("=" * 60)
+    print("MP Bhoj PDF -> Excel + Student Lookup")
+    print("Browser: http://127.0.0.1:5000")
+    print("Stop: Ctrl+C")
+    print("=" * 60)
+    app.run(debug=False, host="127.0.0.1", port=5000, threaded=True)
