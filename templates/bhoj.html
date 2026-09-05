@@ -752,8 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
         studentStatus.classList.add('active-text');
 
         try {
-            const response = await fetch('/mobile/test', {
-                method: 'POST',
+            const response = await fetch('/api/mobile/test', {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     enrollment_no: enrollmentNo,
