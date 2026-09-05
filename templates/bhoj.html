@@ -751,16 +751,24 @@ document.addEventListener('DOMContentLoaded', () => {
         studentStatus.textContent = 'Fetching from MP Bhoj...';
         studentStatus.classList.add('active-text');
 
-        try {
-            const response = await fetch('/api/mobile/test', {
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    enrollment_no: enrollmentNo,
-                    course_type: getCourseType(),
-                    headless: true
-                })
-            });
+     try {
+    const response = await fetch('/api/mobile/test', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            enrollment_no: enrollmentNo,
+            course_type: getCourseType(),
+            headless: true
+        })
+    });
 
+    const data = await response.json();
+
+    console.log(data);
+
+         
             const contentType = response.headers.get('content-type') || '';
             const rawResponse = await response.text();
 
