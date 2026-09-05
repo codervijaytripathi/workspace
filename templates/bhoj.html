@@ -691,6 +691,7 @@ footer{
 document.addEventListener('DOMContentLoaded', () => {
     const rollInput = document.getElementById('rollNumber');
     const searchBtn = document.getElementById('searchBtn');
+
     const studentName = document.getElementById('studentName');
     const studentMobile = document.getElementById('studentMobile');
     const studentRoll = document.getElementById('studentRoll');
@@ -702,9 +703,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedFileName = document.getElementById('selectedFileName');
     const selectedFileSize = document.getElementById('selectedFileSize');
     const removeFile = document.getElementById('removeFile');
+
     const selectAllFields = document.getElementById('selectAllFields');
     const bulkFetchBtn = document.getElementById('bulkFetchBtn');
-    const courseTypeInputs = [...document.querySelectorAll('input[name="courseType"]')];
+
+    const courseTypeInputs = [
+        ...document.querySelectorAll('input[name="courseType"]')
+    ];
 
     function getCourseType() {
         return courseTypeInputs.find(input => input.checked)?.value || 'UG';
@@ -723,133 +728,293 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setStatus(text, active = true) {
         if (!statusBox) return;
-        statusBox.innerHTML = `<span class="status-dot"></span>${text}`;
-        statusBox.style.color = active ? '#86EFAC' : '#FCA5A5';
+
+        statusBox.innerHTML =
+            `<span class="status-dot"></span>${text}`;
+
+        statusBox.style.color =
+            active ? '#86EFAC' : '#FCA5A5';
+
         const dot = statusBox.querySelector('.status-dot');
-        if (dot) dot.style.background = active ? 'var(--primary)' : '#EF4444';
+
+        if (dot) {
+            dot.style.background =
+                active ? 'var(--primary)' : '#EF4444';
+        }
     }
 
     async function searchStudent() {
-        const enrollmentNo = (rollInput?.value || '').trim();
+
+        const enrollmentNo =
+            (rollInput?.value || '').trim();
 
         if (!enrollmentNo) {
             setStatus('Enter Number', false);
+
             studentName.textContent = '—';
             studentMobile.textContent = '—';
             studentRoll.textContent = '—';
-            studentStatus.textContent = 'Please enter a number';
+
+            studentStatus.textContent =
+                'Please enter a number';
+
             studentStatus.classList.remove('active-text');
+
             return;
         }
 
         searchBtn.disabled = true;
-        searchBtn.innerHTML = '<i class="ti ti-loader-2"></i> Searching...';
+
+        searchBtn.innerHTML =
+            '<i class="ti ti-loader-2"></i> Searching...';
+
         setStatus('Fetching...', true);
+
         studentName.textContent = 'Loading...';
         studentMobile.textContent = 'Loading...';
         studentRoll.textContent = enrollmentNo;
-        studentStatus.textContent = 'Fetching from MP Bhoj...';
+
+        studentStatus.textContent =
+            'Fetching from MP Bhoj...';
+
         studentStatus.classList.add('active-text');
 
-     try {
-    const response = await fetch('/api/mobile/test', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            enrollment_no: enrollmentNo,
-            course_type: getCourseType(),
-            headless: true
-        })
-    });
+        try {
 
-    const data = await response.json();
+            /*
+             * IMPORTANT:
+             * Backend POST request
+             */
+            const response = await fetch('/api/mobile/test', {
+                method: 'POST',
 
-    console.log(data);
+                headers: {
+                    'Content-Type': 'application/json'
+                },
 
-         
-            const contentType = response.headers.get('content-type') || '';
-            const rawResponse = await response.text();
+                body: JSON.stringify({
+                    enrollment_no: enrollmentNo,
+                    course_type: getCourseType(),
+                    headless: true
+                })
+            });
 
-            let data = {};
-            if (contentType.includes('application/json')) {
-                try {
-                    data = JSON.parse(rawResponse);
-                } catch (parseError) {
-                    throw new Error('API returned invalid JSON');
-                }
-            } else {
+            /*
+             * Response ko sirf EK BAAR read kar rahe hain.
+             */
+            const contentType =
+                response.headers.get('content-type') || '';
+
+            const rawResponse =
+                await response.text();
+
+            console.log('HTTP Status:', response.status);
+            console.log('Content-Type:', contentType);
+            console.log('API Response:', rawResponse);
+
+            /*
+             * Agar backend JSON nahi bhej raha
+             */
+            if (!contentType.includes('application/json')) {
                 throw new Error(
                     `API route not found or server returned HTML (HTTP ${response.status})`
                 );
             }
 
-            if (!response.ok || data.error || data.success === false) {
-                throw new Error(data.error || 'Student lookup failed');
+            let data = {};
+
+            try {
+                data = JSON.parse(rawResponse);
+            } catch (parseError) {
+                throw new Error(
+                    'API returned invalid JSON'
+                );
             }
 
-            const result = data.result || {};
-            studentName.textContent = result['Candidate Name'] || '—';
-            studentMobile.textContent = result['Mobile No'] || '—';
-            studentRoll.textContent = result['Enrollment No'] || enrollmentNo;
+            /*
+             * Backend error
+             */
+            if (
+                !response.ok ||
+                data.error ||
+                data.success === false
+            ) {
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    'Student lookup failed'
+                );
+            }
 
-            const found = result['Status'] === 'Found';
-            studentStatus.textContent = result['Status'] || (found ? 'Found' : 'Not Found');
-            studentStatus.classList.toggle('active-text', found);
-            setStatus(found ? 'Found' : 'Not Found', found);
+            /*
+             * Actual student result
+             */
+            const result = data.result || {};
+
+            studentName.textContent =
+                result['Candidate Name'] || '—';
+
+            studentMobile.textContent =
+                result['Mobile No'] || '—';
+
+            studentRoll.textContent =
+                result['Enrollment No'] || enrollmentNo;
+
+            const found =
+                result['Status'] === 'Found';
+
+            studentStatus.textContent =
+                result['Status'] ||
+                (found ? 'Found' : 'Not Found');
+
+            studentStatus.classList.toggle(
+                'active-text',
+                found
+            );
+
+            setStatus(
+                found ? 'Found' : 'Not Found',
+                found
+            );
 
         } catch (error) {
+
+            console.error(
+                'Student Lookup Error:',
+                error
+            );
+
             studentName.textContent = '—';
             studentMobile.textContent = '—';
             studentRoll.textContent = enrollmentNo;
-            studentStatus.textContent = error.message || 'Lookup failed';
-            studentStatus.classList.remove('active-text');
+
+            studentStatus.textContent =
+                error.message || 'Lookup failed';
+
+            studentStatus.classList.remove(
+                'active-text'
+            );
+
             setStatus('Error', false);
+
         } finally {
+
             searchBtn.disabled = false;
-            searchBtn.innerHTML = '<i class="ti ti-search"></i> Search';
+
+            searchBtn.innerHTML =
+                '<i class="ti ti-search"></i> Search';
         }
     }
 
-    searchBtn?.addEventListener('click', searchStudent);
-    rollInput?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') searchStudent();
-    });
+    searchBtn?.addEventListener(
+        'click',
+        searchStudent
+    );
 
+    rollInput?.addEventListener(
+        'keydown',
+        event => {
+            if (event.key === 'Enter') {
+                searchStudent();
+            }
+        }
+    );
+
+    /*
+     * File selection
+     */
     if (fileInput) {
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            if (!file) return;
-            selectedFileName.textContent = file.name;
-            selectedFileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-            selectedFile.hidden = false;
-        });
+
+        fileInput.addEventListener(
+            'change',
+            () => {
+
+                const file =
+                    fileInput.files[0];
+
+                if (!file) return;
+
+                selectedFileName.textContent =
+                    file.name;
+
+                selectedFileSize.textContent =
+                    `${(
+                        file.size / 1024 / 1024
+                    ).toFixed(2)} MB`;
+
+                selectedFile.hidden = false;
+            }
+        );
     }
 
-    removeFile?.addEventListener('click', () => {
-        fileInput.value = '';
-        selectedFile.hidden = true;
-    });
+    /*
+     * Remove selected file
+     */
+    removeFile?.addEventListener(
+        'click',
+        () => {
 
-    selectAllFields?.addEventListener('click', () => {
-        const fields = [...document.querySelectorAll('input[name="fields"]')];
-        const shouldSelect = fields.some(field => !field.checked);
-        fields.forEach(field => field.checked = shouldSelect);
-        selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
-    });
+            fileInput.value = '';
 
-    // Bulk backend wiring will be added after Single Lookup is verified.
-    bulkFetchBtn?.addEventListener('click', () => {
-        if (!fileInput?.files?.length) {
-            alert('Please select a PDF or Excel file first.');
-            return;
+            selectedFile.hidden = true;
         }
-        alert(
-            `File selected for ${getCourseType()}.
-Bulk fetching will be connected in the next step.`
-        );
-    });
+    );
+
+    /*
+     * Select / Clear all fields
+     */
+    selectAllFields?.addEventListener(
+        'click',
+        () => {
+
+            const fields = [
+                ...document.querySelectorAll(
+                    'input[name="fields"]'
+                )
+            ];
+
+            const shouldSelect =
+                fields.some(
+                    field => !field.checked
+                );
+
+            fields.forEach(
+                field => {
+                    field.checked = shouldSelect;
+                }
+            );
+
+            selectAllFields.textContent =
+                shouldSelect
+                    ? 'Clear All'
+                    : 'Select All';
+        }
+    );
+
+    /*
+     * Bulk fetching
+     * Abhi backend wiring baad mein karenge.
+     */
+    bulkFetchBtn?.addEventListener(
+        'click',
+        () => {
+
+            if (!fileInput?.files?.length) {
+
+                alert(
+                    'Please select a PDF or Excel file first.'
+                );
+
+                return;
+            }
+
+            alert(
+                `File selected for ${getCourseType()}.\n\n` +
+                `Bulk fetching will be connected in the next step.`
+            );
+        }
+    );
+
 });
 </script>
 </body>
