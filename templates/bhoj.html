@@ -170,6 +170,86 @@ input{
     font-size:17px;
 }
 /*==============================
+        COURSE TYPE
+==============================*/
+.course-type-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:14px;
+    padding:14px 15px;
+    border:1px solid #25252c;
+    border-radius:13px;
+    background:#101013;
+}
+.course-type-label span{
+    display:block;
+    color:#777782;
+    font-size:10px;
+}
+.course-type-label strong{
+    display:block;
+    margin-top:4px;
+    color:#E5E7EB;
+    font-size:12px;
+}
+.course-type-options{
+    display:flex;
+    gap:8px;
+}
+.course-option{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    min-width:145px;
+    padding:9px 12px;
+    border:1px solid #292930;
+    border-radius:10px;
+    background:#0C0C0F;
+    cursor:pointer;
+    transition:.18s;
+}
+.course-option:hover{
+    border-color:#3A3A43;
+}
+.course-option input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+}
+.course-option:has(input:checked){
+    border-color:rgba(34,197,94,.55);
+    background:rgba(34,197,94,.055);
+}
+.course-radio{
+    width:16px;
+    height:16px;
+    flex:none;
+    border:1px solid #44444d;
+    border-radius:50%;
+    background:#0b0b0e;
+}
+.course-option input:checked + .course-radio{
+    border:5px solid #22C55E;
+}
+.course-option b{
+    display:block;
+    color:#E5E7EB;
+    font-size:11px;
+}
+.course-option small{
+    display:block;
+    margin-top:2px;
+    color:#666672;
+    font-size:8px;
+}
+.course-option input:checked ~ span:last-child b{
+    color:#86EFAC;
+}
+
+/*==============================
           SEARCH BOX
 ==============================*/
 .search-box{
@@ -287,6 +367,18 @@ footer{
            RESPONSIVE
 ==============================*/
 @media(max-width:700px){
+    .course-type-row{
+        align-items:stretch;
+        flex-direction:column;
+    }
+    .course-type-options{
+        width:100%;
+    }
+    .course-option{
+        flex:1;
+        min-width:0;
+    }
+
     .bhoj-page{
         width:calc(100% - 28px);
         padding-top:18px;
@@ -435,6 +527,31 @@ footer{
                     <h2>Find Student</h2>
                 </div>
             </div>
+            <div class="course-type-row">
+                <div class="course-type-label">
+                    <span>Course Type</span>
+                    <strong>Select Student Course</strong>
+                </div>
+                <div class="course-type-options">
+                    <label class="course-option">
+                        <input type="radio" name="courseType" value="UG" checked>
+                        <span class="course-radio"></span>
+                        <span>
+                            <b>UG</b>
+                            <small>Under Graduate</small>
+                        </span>
+                    </label>
+                    <label class="course-option">
+                        <input type="radio" name="courseType" value="PG">
+                        <span class="course-radio"></span>
+                        <span>
+                            <b>PG</b>
+                            <small>Post Graduate</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
             <div class="search-box">
                 <i class="ti ti-id"></i>
                 <input
@@ -587,6 +704,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFile = document.getElementById('removeFile');
     const selectAllFields = document.getElementById('selectAllFields');
     const bulkFetchBtn = document.getElementById('bulkFetchBtn');
+    const courseTypeInputs = [...document.querySelectorAll('input[name="courseType"]')];
+
+    function getCourseType() {
+        return courseTypeInputs.find(input => input.checked)?.value || 'UG';
+    }
+
+    courseTypeInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            document.querySelectorAll('.course-option').forEach(option => {
+                option.classList.toggle(
+                    'active',
+                    option.querySelector('input')?.checked
+                );
+            });
+        });
+    });
 
     function setStatus(text, active = true) {
         if (!statusBox) return;
@@ -619,18 +752,33 @@ document.addEventListener('DOMContentLoaded', () => {
         studentStatus.classList.add('active-text');
 
         try {
-            const response = await fetch('/mobile/test', {
+            const response = await fetch('/api/mobile/test', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     enrollment_no: enrollmentNo,
+                    course_type: getCourseType(),
                     headless: true
                 })
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            const rawResponse = await response.text();
 
-            if (!response.ok || data.error) {
+            let data = {};
+            if (contentType.includes('application/json')) {
+                try {
+                    data = JSON.parse(rawResponse);
+                } catch (parseError) {
+                    throw new Error('API returned invalid JSON');
+                }
+            } else {
+                throw new Error(
+                    `API route not found or server returned HTML (HTTP ${response.status})`
+                );
+            }
+
+            if (!response.ok || data.error || data.success === false) {
                 throw new Error(data.error || 'Student lookup failed');
             }
 
@@ -690,7 +838,10 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please select a PDF or Excel file first.');
             return;
         }
-        alert('File selected. Bulk fetching will be connected in the next step.');
+        alert(
+            `File selected for ${getCourseType()}.
+Bulk fetching will be connected in the next step.`
+        );
     });
 });
 </script>
