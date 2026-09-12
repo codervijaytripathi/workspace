@@ -110,12 +110,24 @@ def get_select_value(driver, labels):
 
 
 def select_by_visible_text_contains(select_el, text_fragment):
+    """
+    Select an option whose visible text contains the requested fragment.
+
+    MP Bhoj uses ASP.NET postbacks on these dropdowns. Selecting an option can
+    immediately replace the <option> DOM nodes, so NEVER read option.text
+    after select_by_visible_text() has triggered the postback.
+    """
     sel = Select(select_el)
     fragment = text_fragment.lower().strip()
+
     for option in sel.options:
-        if fragment in option.text.lower():
-            sel.select_by_visible_text(option.text)
-            return option.text
+        option_text = option.text
+        if fragment in option_text.lower():
+            # Save the text BEFORE the postback.
+            selected_text = option_text
+            sel.select_by_visible_text(selected_text)
+            return selected_text
+
     raise NoSuchElementException(
         f"Option containing '{text_fragment}' not found in dropdown"
     )
