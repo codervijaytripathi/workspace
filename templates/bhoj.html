@@ -493,6 +493,40 @@ footer{
     .field-grid{grid-template-columns:1fr}
     .upload-box{min-height:115px}
 }
+
+/* Bulk progress/results */
+.bulk-progress-card{margin-top:22px;padding:25px;border:1px solid #26262D;border-radius:20px;background:#151518}
+.bulk-progress-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.bulk-progress-head>div:first-child span{display:block;color:#777782;font-size:10px}
+.bulk-progress-head h2{margin-top:5px;font-size:17px}
+.bulk-progress-actions{display:flex;gap:8px}
+.stop-bulk-btn,.download-bulk-btn{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:9px;font-size:10px;font-weight:600}
+.stop-bulk-btn{background:#2a1717;color:#FCA5A5;border:1px solid #482626}
+.download-bulk-btn{background:#22C55E;color:#061006}
+.stop-bulk-btn:hover{background:#3a1b1b}
+.download-bulk-btn:hover{background:#34D399}
+.progress-track{height:8px;margin-top:22px;border-radius:99px;background:#25252c;overflow:hidden}
+.progress-fill{width:0;height:100%;border-radius:99px;background:#22C55E;transition:width .25s ease}
+.progress-meta{display:flex;justify-content:space-between;gap:15px;margin-top:9px;font-size:10px}
+.progress-meta strong{color:#E5E7EB}.progress-meta span{color:#777782;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bulk-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;border:1px solid #25252c;border-radius:12px;overflow:hidden}
+.bulk-stats div{padding:13px;border-right:1px solid #25252c}.bulk-stats div:last-child{border-right:0}
+.bulk-stats span{display:block;color:#666672;font-size:9px}.bulk-stats strong{display:block;margin-top:5px;font-size:14px}
+.bulk-result-table-wrap{margin-top:18px;overflow:auto;border:1px solid #25252c;border-radius:12px}
+.bulk-result-table{width:100%;border-collapse:collapse;min-width:650px}
+.bulk-result-table th,.bulk-result-table td{padding:10px 12px;border-bottom:1px solid #222228;text-align:left;font-size:9px;white-space:nowrap}
+.bulk-result-table th{background:#101013;color:#86EFAC;font-weight:600}
+.bulk-result-table td{color:#C9CAD0}.bulk-result-table tr:last-child td{border-bottom:0}
+.failed-box{margin-top:16px;padding:13px;border:1px solid #422828;border-radius:12px;background:#160f0f}
+.failed-box>div:first-child{display:flex;justify-content:space-between;gap:10px}
+.failed-box strong{font-size:10px;color:#FCA5A5}.failed-box span{font-size:9px;color:#777}
+#failedNumbers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.failed-number{padding:5px 7px;border-radius:7px;background:#241616;color:#FCA5A5;font-size:9px}
+@media(max-width:600px){
+    .bulk-progress-head{align-items:stretch;flex-direction:column}
+    .bulk-progress-actions{width:100%}.stop-bulk-btn,.download-bulk-btn{flex:1;justify-content:center}
+}
+
 </style>
 </head>
 <body>
@@ -649,6 +683,54 @@ footer{
                 </button>
             </div>
         </section>
+
+        <section class="bulk-progress-card" id="bulkProgressCard" hidden>
+            <div class="bulk-progress-head">
+                <div>
+                    <span>Bulk Fetch</span>
+                    <h2 id="bulkProgressTitle">Preparing...</h2>
+                </div>
+                <div class="bulk-progress-actions">
+                    <button type="button" id="stopBulkBtn" class="stop-bulk-btn">
+                        <i class="ti ti-player-stop"></i> Stop
+                    </button>
+                    <a id="downloadBulkBtn" class="download-bulk-btn" href="#" hidden>
+                        <i class="ti ti-download"></i> Download Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="bulkProgressFill"></div>
+            </div>
+
+            <div class="progress-meta">
+                <strong id="bulkProgressCount">0 / 0</strong>
+                <span id="bulkCurrentNumber">Waiting...</span>
+            </div>
+
+            <div class="bulk-stats">
+                <div><span>Found</span><strong id="bulkFound">0</strong></div>
+                <div><span>Failed</span><strong id="bulkFailed">0</strong></div>
+                <div><span>Status</span><strong id="bulkStatus">Queued</strong></div>
+            </div>
+
+            <div class="bulk-result-table-wrap">
+                <table class="bulk-result-table">
+                    <thead id="bulkResultHead"></thead>
+                    <tbody id="bulkResultBody"></tbody>
+                </table>
+            </div>
+
+            <div class="failed-box" id="failedBox" hidden>
+                <div>
+                    <strong>Failed Enrollment Numbers</strong>
+                    <span id="failedCountLabel"></span>
+                </div>
+                <div id="failedNumbers"></div>
+            </div>
+        </section>
+
         <section class="student-card">
             <div class="student-header">
                 <div>
@@ -691,7 +773,6 @@ footer{
 document.addEventListener('DOMContentLoaded', () => {
     const rollInput = document.getElementById('rollNumber');
     const searchBtn = document.getElementById('searchBtn');
-
     const studentName = document.getElementById('studentName');
     const studentMobile = document.getElementById('studentMobile');
     const studentRoll = document.getElementById('studentRoll');
@@ -703,13 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedFileName = document.getElementById('selectedFileName');
     const selectedFileSize = document.getElementById('selectedFileSize');
     const removeFile = document.getElementById('removeFile');
-
     const selectAllFields = document.getElementById('selectAllFields');
     const bulkFetchBtn = document.getElementById('bulkFetchBtn');
-
-    const courseTypeInputs = [
-        ...document.querySelectorAll('input[name="courseType"]')
-    ];
+    const courseTypeInputs = [...document.querySelectorAll('input[name="courseType"]')];
 
     function getCourseType() {
         return courseTypeInputs.find(input => input.checked)?.value || 'UG';
@@ -728,70 +805,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setStatus(text, active = true) {
         if (!statusBox) return;
-
-        statusBox.innerHTML =
-            `<span class="status-dot"></span>${text}`;
-
-        statusBox.style.color =
-            active ? '#86EFAC' : '#FCA5A5';
-
+        statusBox.innerHTML = `<span class="status-dot"></span>${text}`;
+        statusBox.style.color = active ? '#86EFAC' : '#FCA5A5';
         const dot = statusBox.querySelector('.status-dot');
-
-        if (dot) {
-            dot.style.background =
-                active ? 'var(--primary)' : '#EF4444';
-        }
+        if (dot) dot.style.background = active ? 'var(--primary)' : '#EF4444';
     }
 
     async function searchStudent() {
-
-        const enrollmentNo =
-            (rollInput?.value || '').trim();
+        const enrollmentNo = (rollInput?.value || '').trim();
 
         if (!enrollmentNo) {
             setStatus('Enter Number', false);
-
             studentName.textContent = '—';
             studentMobile.textContent = '—';
             studentRoll.textContent = '—';
-
-            studentStatus.textContent =
-                'Please enter a number';
-
+            studentStatus.textContent = 'Please enter a number';
             studentStatus.classList.remove('active-text');
-
             return;
         }
 
         searchBtn.disabled = true;
-
-        searchBtn.innerHTML =
-            '<i class="ti ti-loader-2"></i> Searching...';
-
+        searchBtn.innerHTML = '<i class="ti ti-loader-2"></i> Searching...';
         setStatus('Fetching...', true);
-
         studentName.textContent = 'Loading...';
         studentMobile.textContent = 'Loading...';
         studentRoll.textContent = enrollmentNo;
-
-        studentStatus.textContent =
-            'Fetching from MP Bhoj...';
-
+        studentStatus.textContent = 'Fetching from MP Bhoj...';
         studentStatus.classList.add('active-text');
 
         try {
-
-            /*
-             * IMPORTANT:
-             * Backend POST request
-             */
             const response = await fetch('https://mp-bhoj-backend.onrender.com/mobile/test', {
                 method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     enrollment_no: enrollmentNo,
                     course_type: getCourseType(),
@@ -799,222 +844,300 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            /*
-             * Response ko sirf EK BAAR read kar rahe hain.
-             */
-            const contentType =
-                response.headers.get('content-type') || '';
+            const contentType = response.headers.get('content-type') || '';
+            const rawResponse = await response.text();
 
-            const rawResponse =
-                await response.text();
-
-            console.log('HTTP Status:', response.status);
-            console.log('Content-Type:', contentType);
-            console.log('API Response:', rawResponse);
-
-            /*
-             * Agar backend JSON nahi bhej raha
-             */
-            if (!contentType.includes('application/json')) {
+            let data = {};
+            if (contentType.includes('application/json')) {
+                try {
+                    data = JSON.parse(rawResponse);
+                } catch (parseError) {
+                    throw new Error('API returned invalid JSON');
+                }
+            } else {
                 throw new Error(
                     `API route not found or server returned HTML (HTTP ${response.status})`
                 );
             }
 
-            let data = {};
-
-            try {
-                data = JSON.parse(rawResponse);
-            } catch (parseError) {
-                throw new Error(
-                    'API returned invalid JSON'
-                );
+            if (!response.ok || data.error || data.success === false) {
+                throw new Error(data.error || 'Student lookup failed');
             }
 
-            /*
-             * Backend error
-             */
-            if (
-                !response.ok ||
-                data.error ||
-                data.success === false
-            ) {
-                throw new Error(
-                    data.error ||
-                    data.message ||
-                    'Student lookup failed'
-                );
-            }
-
-            /*
-             * Actual student result
-             */
             const result = data.result || {};
+            studentName.textContent = result['Candidate Name'] || '—';
+            studentMobile.textContent = result['Mobile No'] || '—';
+            studentRoll.textContent = result['Enrollment No'] || enrollmentNo;
 
-            studentName.textContent =
-                result['Candidate Name'] || '—';
-
-            studentMobile.textContent =
-                result['Mobile No'] || '—';
-
-            studentRoll.textContent =
-                result['Enrollment No'] || enrollmentNo;
-
-            const found =
-                result['Status'] === 'Found';
-
-            studentStatus.textContent =
-                result['Status'] ||
-                (found ? 'Found' : 'Not Found');
-
-            studentStatus.classList.toggle(
-                'active-text',
-                found
-            );
-
-            setStatus(
-                found ? 'Found' : 'Not Found',
-                found
-            );
+            const found = result['Status'] === 'Found';
+            studentStatus.textContent = result['Status'] || (found ? 'Found' : 'Not Found');
+            studentStatus.classList.toggle('active-text', found);
+            setStatus(found ? 'Found' : 'Not Found', found);
 
         } catch (error) {
-
-            console.error(
-                'Student Lookup Error:',
-                error
-            );
-
             studentName.textContent = '—';
             studentMobile.textContent = '—';
             studentRoll.textContent = enrollmentNo;
-
-            studentStatus.textContent =
-                error.message || 'Lookup failed';
-
-            studentStatus.classList.remove(
-                'active-text'
-            );
-
+            studentStatus.textContent = error.message || 'Lookup failed';
+            studentStatus.classList.remove('active-text');
             setStatus('Error', false);
-
         } finally {
-
             searchBtn.disabled = false;
-
-            searchBtn.innerHTML =
-                '<i class="ti ti-search"></i> Search';
+            searchBtn.innerHTML = '<i class="ti ti-search"></i> Search';
         }
     }
 
-    searchBtn?.addEventListener(
-        'click',
-        searchStudent
-    );
+    searchBtn?.addEventListener('click', searchStudent);
+    rollInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchStudent();
+    });
 
-    rollInput?.addEventListener(
-        'keydown',
-        event => {
-            if (event.key === 'Enter') {
-                searchStudent();
-            }
-        }
-    );
-
-    /*
-     * File selection
-     */
     if (fileInput) {
-
-        fileInput.addEventListener(
-            'change',
-            () => {
-
-                const file =
-                    fileInput.files[0];
-
-                if (!file) return;
-
-                selectedFileName.textContent =
-                    file.name;
-
-                selectedFileSize.textContent =
-                    `${(
-                        file.size / 1024 / 1024
-                    ).toFixed(2)} MB`;
-
-                selectedFile.hidden = false;
-            }
-        );
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            selectedFileName.textContent = file.name;
+            selectedFileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            selectedFile.hidden = false;
+        });
     }
 
-    /*
-     * Remove selected file
-     */
-    removeFile?.addEventListener(
-        'click',
-        () => {
+    removeFile?.addEventListener('click', () => {
+        fileInput.value = '';
+        selectedFile.hidden = true;
+    });
 
-            fileInput.value = '';
+    selectAllFields?.addEventListener('click', () => {
+        const fields = [...document.querySelectorAll('input[name="fields"]')];
+        const shouldSelect = fields.some(field => !field.checked);
+        fields.forEach(field => field.checked = shouldSelect);
+        selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
+    });
 
-            selectedFile.hidden = true;
+    const API_BASE = 'https://mp-bhoj-backend.onrender.com';
+    const bulkProgressCard = document.getElementById('bulkProgressCard');
+    const bulkProgressTitle = document.getElementById('bulkProgressTitle');
+    const bulkProgressFill = document.getElementById('bulkProgressFill');
+    const bulkProgressCount = document.getElementById('bulkProgressCount');
+    const bulkCurrentNumber = document.getElementById('bulkCurrentNumber');
+    const bulkFound = document.getElementById('bulkFound');
+    const bulkFailed = document.getElementById('bulkFailed');
+    const bulkStatus = document.getElementById('bulkStatus');
+    const stopBulkBtn = document.getElementById('stopBulkBtn');
+    const downloadBulkBtn = document.getElementById('downloadBulkBtn');
+    const bulkResultHead = document.getElementById('bulkResultHead');
+    const bulkResultBody = document.getElementById('bulkResultBody');
+    const failedBox = document.getElementById('failedBox');
+    const failedCountLabel = document.getElementById('failedCountLabel');
+    const failedNumbers = document.getElementById('failedNumbers');
+
+    let activeBulkJobId = null;
+    let bulkPollingTimer = null;
+
+    function selectedBulkFields() {
+        return [...document.querySelectorAll('input[name="fields"]:checked')]
+            .map(input => input.value);
+    }
+
+    function resetBulkResultUI() {
+        bulkProgressCard.hidden = false;
+        bulkProgressTitle.textContent = 'Uploading file...';
+        bulkProgressFill.style.width = '0%';
+        bulkProgressCount.textContent = '0 / 0';
+        bulkCurrentNumber.textContent = 'Reading file...';
+        bulkFound.textContent = '0';
+        bulkFailed.textContent = '0';
+        bulkStatus.textContent = 'Queued';
+        downloadBulkBtn.hidden = true;
+        downloadBulkBtn.removeAttribute('href');
+        failedBox.hidden = true;
+        failedNumbers.innerHTML = '';
+        bulkResultHead.innerHTML = '';
+        bulkResultBody.innerHTML = '';
+    }
+
+    function renderBulkPreview(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+
+        const keys = [];
+        rows.forEach(row => Object.keys(row || {}).forEach(key => {
+            if (!keys.includes(key)) keys.push(key);
+        }));
+
+        bulkResultHead.innerHTML =
+            '<tr>' + keys.map(key => `<th>${escapeHtml(key)}</th>`).join('') + '</tr>';
+
+        bulkResultBody.innerHTML = rows.map(row =>
+            '<tr>' + keys.map(key =>
+                `<td>${escapeHtml(row?.[key] ?? '')}</td>`
+            ).join('') + '</tr>'
+        ).join('');
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function showFailedNumbers(list) {
+        const values = Array.isArray(list) ? list.filter(Boolean) : [];
+        if (!values.length) {
+            failedBox.hidden = true;
+            return;
         }
-    );
 
-    /*
-     * Select / Clear all fields
-     */
-    selectAllFields?.addEventListener(
-        'click',
-        () => {
+        failedBox.hidden = false;
+        failedCountLabel.textContent = `${values.length} number${values.length === 1 ? '' : 's'}`;
+        failedNumbers.innerHTML = values
+            .map(number => `<span class="failed-number">${escapeHtml(number)}</span>`)
+            .join('');
+    }
 
-            const fields = [
-                ...document.querySelectorAll(
-                    'input[name="fields"]'
-                )
-            ];
+    async function pollBulkStatus() {
+        if (!activeBulkJobId) return;
 
-            const shouldSelect =
-                fields.some(
-                    field => !field.checked
-                );
-
-            fields.forEach(
-                field => {
-                    field.checked = shouldSelect;
-                }
+        try {
+            const response = await fetch(
+                `${API_BASE}/mobile/status/${activeBulkJobId}`
             );
+            const data = await response.json();
 
-            selectAllFields.textContent =
-                shouldSelect
-                    ? 'Clear All'
-                    : 'Select All';
-        }
-    );
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'Unable to read bulk status');
+            }
 
-    /*
-     * Bulk fetching
-     * Abhi backend wiring baad mein karenge.
-     */
-    bulkFetchBtn?.addEventListener(
-        'click',
-        () => {
+            const current = Number(data.current || 0);
+            const total = Number(data.total || 0);
+            const percent = total ? Math.min(100, (current / total) * 100) : 0;
 
-            if (!fileInput?.files?.length) {
+            bulkProgressFill.style.width = `${percent}%`;
+            bulkProgressCount.textContent = `${current} / ${total}`;
+            bulkCurrentNumber.textContent = data.current_number
+                ? `Current: ${data.current_number}`
+                : 'Waiting...';
+            bulkFound.textContent = data.found ?? 0;
+            bulkFailed.textContent = data.failed ?? 0;
+            bulkStatus.textContent = data.status || 'Processing';
 
-                alert(
-                    'Please select a PDF or Excel file first.'
-                );
+            if (data.preview) renderBulkPreview(data.preview);
+            if (data.failed_numbers) showFailedNumbers(data.failed_numbers);
 
+            if (data.status === 'done' || data.status === 'stopped') {
+                clearTimeout(bulkPollingTimer);
+                bulkPollingTimer = null;
+
+                if (data.status === 'done') {
+                    bulkProgressTitle.textContent = 'Bulk Fetch Complete';
+                    bulkProgressFill.style.width = '100%';
+                } else {
+                    bulkProgressTitle.textContent = 'Bulk Fetch Stopped';
+                }
+
+                if (data.download_url) {
+                    downloadBulkBtn.href = data.download_url;
+                    downloadBulkBtn.hidden = false;
+                }
+
+                bulkFetchBtn.disabled = false;
+                bulkFetchBtn.innerHTML =
+                    '<i class="ti ti-player-play"></i> Start Fetch';
                 return;
             }
 
-            alert(
-                `File selected for ${getCourseType()}.\n\n` +
-                `Bulk fetching will be connected in the next step.`
-            );
-        }
-    );
+            if (data.status === 'error') {
+                clearTimeout(bulkPollingTimer);
+                bulkPollingTimer = null;
+                bulkProgressTitle.textContent = 'Bulk Fetch Error';
+                bulkCurrentNumber.textContent = data.error || 'Unknown error';
+                bulkFetchBtn.disabled = false;
+                bulkFetchBtn.innerHTML =
+                    '<i class="ti ti-player-play"></i> Start Fetch';
+                return;
+            }
 
+            bulkPollingTimer = setTimeout(pollBulkStatus, 1500);
+
+        } catch (error) {
+            clearTimeout(bulkPollingTimer);
+            bulkPollingTimer = null;
+            bulkProgressTitle.textContent = 'Connection Error';
+            bulkCurrentNumber.textContent = error.message || 'Status request failed';
+            bulkFetchBtn.disabled = false;
+            bulkFetchBtn.innerHTML =
+                '<i class="ti ti-player-play"></i> Start Fetch';
+        }
+    }
+
+    bulkFetchBtn?.addEventListener('click', async () => {
+        if (!fileInput?.files?.length) {
+            alert('Please select a PDF or Excel file first.');
+            return;
+        }
+
+        const fields = selectedBulkFields();
+        if (!fields.length) {
+            alert('Please select at least one information field.');
+            return;
+        }
+
+        bulkFetchBtn.disabled = true;
+        bulkFetchBtn.innerHTML =
+            '<i class="ti ti-loader-2"></i> Starting...';
+
+        resetBulkResultUI();
+
+        try {
+            const formData = new FormData();
+            formData.append('data_file', fileInput.files[0]);
+            formData.append('course_type', getCourseType());
+            formData.append('selected_fields', fields.join(','));
+            formData.append('headless', 'true');
+
+            const response = await fetch(`${API_BASE}/mobile/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Bulk upload failed');
+            }
+
+            activeBulkJobId = data.job_id;
+            bulkProgressTitle.textContent =
+                `Fetching ${getCourseType()} Students`;
+            bulkStatus.textContent = 'Processing';
+            await pollBulkStatus();
+
+        } catch (error) {
+            bulkProgressTitle.textContent = 'Bulk Fetch Error';
+            bulkCurrentNumber.textContent = error.message || 'Upload failed';
+            bulkFetchBtn.disabled = false;
+            bulkFetchBtn.innerHTML =
+                '<i class="ti ti-player-play"></i> Start Fetch';
+        }
+    });
+
+    stopBulkBtn?.addEventListener('click', async () => {
+        if (!activeBulkJobId) return;
+
+        stopBulkBtn.disabled = true;
+        stopBulkBtn.innerHTML =
+            '<i class="ti ti-loader-2"></i> Stopping...';
+
+        try {
+            await fetch(`${API_BASE}/mobile/stop/${activeBulkJobId}`, {
+                method: 'POST'
+            });
+        } catch (_) {
+            // Status polling will show the final state.
+        }
+    });
 });
 </script>
 </body>
