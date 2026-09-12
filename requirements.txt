@@ -1,5 +1,7 @@
 Flask
-flask-cors
+gunicorn
 selenium
 webdriver-manager
-gunicorn
+pandas
+openpyxl
+pdfplumber
