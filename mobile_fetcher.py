@@ -135,9 +135,9 @@ def _wait_for_postback(driver, old_ref, wait):
 
 def setup_driver(headless=False):
     """
-    Start Chromium using the system-installed browser and driver.
-    This is intended for Docker/Render deployment and avoids downloading
-    a separate ChromeDriver at runtime.
+    Start the system-installed Chromium + chromedriver.
+    Works with the Dockerfile used for Render and does not download a
+    driver at runtime.
     """
     import shutil
 
@@ -152,6 +152,7 @@ def setup_driver(headless=False):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
+    options.add_argument("--disable-blink-features=AutomationControlled")
 
     chromium_binary = (
         shutil.which("chromium")
@@ -169,8 +170,8 @@ def setup_driver(headless=False):
 
     if not chromedriver_binary:
         raise RuntimeError(
-            "ChromiumDriver not found. Expected a system chromedriver "
-            "installed by the Docker image."
+            "Chromedriver not found. The Docker image must install "
+            "chromium-driver."
         )
 
     service = Service(executable_path=chromedriver_binary)
@@ -179,22 +180,46 @@ def setup_driver(headless=False):
 
 def setup_form(driver, course_type="UG"):
     """
-    Open the official form and select Course Type + Apply For.
-    Course Type is now dynamic: UG or PG.
+    Open the official MP Bhoj Migration form and perform the same manual
+    sequence used on the website:
+
+      1. Course Type -> UG/PG (postback/refresh)
+      2. Apply For -> No Objection Certificate (postback/refresh)
+
+    Elements are deliberately located again after every postback because
+    the ASP.NET form replaces DOM elements during these refreshes.
     """
     course_type = normalize_course_type(course_type)
+
     driver.get(URL)
     wait = WebDriverWait(driver, WAIT_TIMEOUT)
 
+    # Step 1: Course Type
     course_select = find_select_near_label(driver, "Course Type")
     old_ref = course_select
-    select_by_visible_text_contains(course_select, course_type)
+    selected = select_by_visible_text_contains(course_select, course_type)
+
     _wait_for_postback(driver, old_ref, wait)
 
-    apply_select = find_select_near_label(driver, "Apply For")
+    # Step 2: Apply For. IMPORTANT: find it again after Course Type postback.
+    def find_apply_select(_driver):
+        try:
+            return find_select_near_label(_driver, "Apply For")
+        except Exception:
+            return False
+
+    apply_select = wait.until(find_apply_select)
     old_ref = apply_select
-    select_by_visible_text_contains(apply_select, "No Objection Certificate")
+    select_by_visible_text_contains(
+        apply_select, "No Objection Certificate"
+    )
+
     _wait_for_postback(driver, old_ref, wait)
+
+    # Confirm the new page has the Enrollment No input.
+    wait.until(
+        lambda d: try_find_input(d, ["Enrollment No"]) is not None
+    )
 
     return course_type
 
