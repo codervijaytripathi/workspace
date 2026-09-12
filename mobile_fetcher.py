@@ -20,7 +20,6 @@ from selenium.common.exceptions import (
     TimeoutException,
 )
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
 URL = "https://mpbou.mponline.gov.in/portal/Services/BHOJ/BrochureFee/Migration.aspx"
@@ -135,16 +134,46 @@ def _wait_for_postback(driver, old_ref, wait):
 
 
 def setup_driver(headless=False):
+    """
+    Start Chromium using the system-installed browser and driver.
+    This is intended for Docker/Render deployment and avoids downloading
+    a separate ChromeDriver at runtime.
+    """
+    import shutil
+
     options = Options()
+
     if headless:
         options.add_argument("--headless=new")
+
     options.add_argument("--window-size=1400,1000")
     options.add_argument("--disable-notifications")
     options.add_argument("--disable-popup-blocking")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
 
-    service = Service(ChromeDriverManager().install())
+    chromium_binary = (
+        shutil.which("chromium")
+        or shutil.which("chromium-browser")
+        or shutil.which("google-chrome")
+    )
+
+    chromedriver_binary = (
+        shutil.which("chromedriver")
+        or shutil.which("chromium-driver")
+    )
+
+    if chromium_binary:
+        options.binary_location = chromium_binary
+
+    if not chromedriver_binary:
+        raise RuntimeError(
+            "ChromiumDriver not found. Expected a system chromedriver "
+            "installed by the Docker image."
+        )
+
+    service = Service(executable_path=chromedriver_binary)
     return webdriver.Chrome(service=service, options=options)
 
 
