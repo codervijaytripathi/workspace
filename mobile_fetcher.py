@@ -23,8 +23,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 URL = "https://mpbou.mponline.gov.in/portal/Services/BHOJ/BrochureFee/Migration.aspx"
-WAIT_TIMEOUT = 20
-POLL_INTERVAL = 0.5
+WAIT_TIMEOUT = 12
+POLL_INTERVAL = 0.2
 
 
 def normalize_course_type(value):
@@ -142,7 +142,7 @@ def _wait_for_postback(driver, old_ref, wait):
         wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
     except TimeoutException:
         pass
-    time.sleep(0.7)
+    time.sleep(0.2)
 
 
 def setup_driver(headless=False):
@@ -256,7 +256,19 @@ def _fetch_one_impl(driver, enrollment_no):
     except TimeoutException:
         pass
 
-    time.sleep(0.7)
+    # Wait only until the portal has actually populated at least one returned field.
+    # This avoids a fixed sleep on every successful request.
+    def data_started(d):
+        for labels in (["Candidate's Name", "Candidate Name", "Name"], ["Mobile No", "Mobile Number", "Mobile"], ["Father's Name", "Father Name"]):
+            value = get_input_value(d, labels)
+            if value:
+                return True
+        return False
+
+    try:
+        wait.until(data_started)
+    except TimeoutException:
+        pass
 
     # The portal may populate several fields after Enrollment No.
     values = {
