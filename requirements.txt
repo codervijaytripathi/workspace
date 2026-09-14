@@ -1,7 +1,8 @@
 Flask
-gunicorn
-selenium
-webdriver-manager
 pandas
 openpyxl
+xlrd
 pdfplumber
+selenium
+reportlab
+gunicorn
