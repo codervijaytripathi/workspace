@@ -12,7 +12,7 @@ import traceback
 import os
 from pathlib import Path
 
-from flask import Flask, request, render_template, send_file, jsonify, url_for
+from flask import Flask, request, render_template, send_file, jsonify
 from werkzeug.exceptions import HTTPException
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -38,6 +38,7 @@ except Exception:
     raise
 
 app = Flask(__name__)
+APP_VERSION = "bulk-v4"
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
 JOBS = {}
@@ -55,11 +56,6 @@ FIELD_LABELS = {
     "Course Type": "Course Type",
     "Status": "Status",
 }
-
-
-def public_file_url(endpoint, job_id):
-    """Build URLs only inside an active Flask request context."""
-    return url_for(endpoint, job_id=job_id, _external=True)
 
 
 @app.after_request
@@ -134,7 +130,7 @@ def status(job_id):
         return jsonify({"error": "Job not found"}), 404
     resp = {"status": job["status"], "current_page": job.get("current_page", 0), "total_pages": job.get("total_pages", 0)}
     if job["status"] == "done":
-        resp.update({"info": job["info"], "preview": job["preview"], "columns": job["columns"], "download_url": public_file_url("download", job_id)})
+        resp.update({"info": job["info"], "preview": job["preview"], "columns": job["columns"], "download_url": request.host_url.rstrip("/") + f"/download/{job_id}"})
     if job["status"] == "error":
         resp["error"] = job.get("error", "Unknown error")
     return jsonify(resp)
@@ -173,7 +169,7 @@ def _student_test_impl():
         return jsonify({"success": True, "result": result})
     except Exception as e:
         logger.error("Student lookup error:\n" + traceback.format_exc())
-        shot_url = public_file_url("debug_screenshot", screenshot_name) if screenshot_path.exists() else None
+        shot_url = request.host_url.rstrip("/") + f"/debug/{screenshot_name}" if screenshot_path.exists() else None
         return jsonify({"success": False, "error": str(e), "screenshot_url": shot_url}), 500
 
 
@@ -296,8 +292,9 @@ def _job_response(job_id, job):
         "total_processed": job.get("total_processed", len(job.get("results", []))),
         "preview": job.get("preview", []),
         "failed_numbers": job.get("failed_numbers", []),
-        "download_url": public_file_url("mobile_download", job_id) if job.get("output_file") else None,
-        "pdf_download_url": public_file_url("mobile_download_pdf", job_id) if job.get("pdf_output_file") else None,
+        "download_url": request.host_url.rstrip("/") + f"/mobile/download/{job_id}" if job.get("output_file") else None,
+        "pdf_download_url": request.host_url.rstrip("/") + f"/mobile/download-pdf/{job_id}" if job.get("pdf_output_file") else None,
+        "app_version": APP_VERSION,
     }
     if status == "error":
         response["error"] = job.get("error", "Unknown error")
@@ -464,7 +461,7 @@ def mobile_download_pdf(job_id):
 
 @app.route("/health")
 def health():
-    return jsonify({"ok": True, "service": "mp-bhoj-backend"})
+    return jsonify({"ok": True, "service": "mp-bhoj-backend", "version": APP_VERSION})
 
 
 if __name__ == "__main__":
