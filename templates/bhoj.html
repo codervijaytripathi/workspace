@@ -1,1144 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP Bhoj University</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="bhoj.css">
-   <style>
-   :root{
-    --bg:#09090B;
-    --card:#151518;
-    --card-2:#111114;
-    --border:#26262D;
-    --text:#fff;
-    --muted:#9CA3AF;
-    --muted-2:#666672;
-    --primary:#22C55E;
-}
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-body{
-    min-height:100vh;
-    font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:var(--text);
-}
-a{
-    text-decoration:none;
-    color:inherit;
-}
-button,
-input{
-    font-family:inherit;
-}
-button{
-    border:0;
-    cursor:pointer;
-}
-input{
-    outline:0;
-}
-.bhoj-page{
-    width:min(1050px,calc(100% - 40px));
-    margin:0 auto;
-    padding:28px 0 30px;
-}
-/*==============================
-            TOPBAR
-==============================*/
-.topbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:55px;
-}
-.back-btn,
-.year-badge{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:10px 14px;
-    border:1px solid var(--border);
-    border-radius:11px;
-    background:var(--card);
-    color:var(--muted);
-    font-size:12px;
-}
-.back-btn:hover{
-    color:#fff;
-    border-color:#3A3A43;
-}
-.year-badge{
-    color:#86EFAC;
-    background:rgba(34,197,94,.06);
-    border-color:rgba(34,197,94,.16);
-}
-/*==============================
-             HERO
-==============================*/
-.hero{
-    position:relative;
-    overflow:hidden;
-    padding:45px;
-    border:1px solid var(--border);
-    border-radius:24px;
-    background:
-        radial-gradient(
-            circle at 85% 20%,
-            rgba(34,197,94,.08),
-            transparent 35%
-        ),
-        linear-gradient(135deg,#17171D,#111114);
-}
-.hero-icon{
-    width:52px;
-    height:52px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-bottom:20px;
-    border-radius:15px;
-    background:rgba(34,197,94,.09);
-    color:var(--primary);
-    font-size:25px;
-}
-.label{
-    color:#86EFAC;
-    font-size:12px;
-}
-.hero h1{
-    margin-top:8px;
-    font-size:40px;
-    letter-spacing:-1.2px;
-}
-.hero p{
-    max-width:600px;
-    margin-top:12px;
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.7;
-}
-/*==============================
-          LOOKUP CARD
-==============================*/
-.lookup-card,
-.student-card{
-    margin-top:22px;
-    padding:25px;
-    border:1px solid var(--border);
-    border-radius:20px;
-    background:var(--card);
-}
-.card-heading,
-.student-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-.card-heading{
-    justify-content:flex-start;
-    gap:13px;
-    margin-bottom:20px;
-}
-.heading-icon{
-    width:44px;
-    height:44px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:12px;
-    background:rgba(34,197,94,.08);
-    color:var(--primary);
-    font-size:20px;
-}
-.card-heading span,
-.student-header span{
-    color:#777782;
-    font-size:10px;
-}
-.card-heading h2,
-.student-header h2{
-    margin-top:4px;
-    font-size:17px;
-}
-/*==============================
-        COURSE TYPE
-==============================*/
-.course-type-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:18px;
-    margin-bottom:14px;
-    padding:14px 15px;
-    border:1px solid #25252c;
-    border-radius:13px;
-    background:#101013;
-}
-.course-type-label span{
-    display:block;
-    color:#777782;
-    font-size:10px;
-}
-.course-type-label strong{
-    display:block;
-    margin-top:4px;
-    color:#E5E7EB;
-    font-size:12px;
-}
-.course-type-options{
-    display:flex;
-    gap:8px;
-}
-.course-option{
-    position:relative;
-    display:flex;
-    align-items:center;
-    gap:9px;
-    min-width:145px;
-    padding:9px 12px;
-    border:1px solid #292930;
-    border-radius:10px;
-    background:#0C0C0F;
-    cursor:pointer;
-    transition:.18s;
-}
-.course-option:hover{
-    border-color:#3A3A43;
-}
-.course-option input{
-    position:absolute;
-    opacity:0;
-    pointer-events:none;
-}
-.course-option:has(input:checked){
-    border-color:rgba(34,197,94,.55);
-    background:rgba(34,197,94,.055);
-}
-.course-radio{
-    width:16px;
-    height:16px;
-    flex:none;
-    border:1px solid #44444d;
-    border-radius:50%;
-    background:#0b0b0e;
-}
-.course-option input:checked + .course-radio{
-    border:5px solid #22C55E;
-}
-.course-option b{
-    display:block;
-    color:#E5E7EB;
-    font-size:11px;
-}
-.course-option small{
-    display:block;
-    margin-top:2px;
-    color:#666672;
-    font-size:8px;
-}
-.course-option input:checked ~ span:last-child b{
-    color:#86EFAC;
-}
-
-/*==============================
-          SEARCH BOX
-==============================*/
-.search-box{
-    height:54px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding-left:16px;
-    border:1px solid #2B2B32;
-    border-radius:13px;
-    background:#0F0F12;
-}
-.search-box:focus-within{
-    border-color:rgba(34,197,94,.5);
-}
-.search-box>i{
-    color:#666672;
-    font-size:19px;
-}
-.search-box input{
-    flex:1;
-    min-width:0;
-    height:100%;
-    background:transparent;
-    color:#fff;
-    font-size:13px;
-}
-.search-box input::placeholder{
-    color:#5F5F69;
-}
-.search-box button{
-    height:42px;
-    display:flex;
-    align-items:center;
-    gap:7px;
-    margin-right:6px;
-    padding:0 16px;
-    border-radius:10px;
-    background:var(--primary);
-    color:#061006;
-    font-size:12px;
-    font-weight:600;
-}
-.search-box button:hover{
-    background:#34D399;
-}
-.search-hint{
-    margin-top:10px;
-    color:#5F5F69;
-    font-size:10px;
-}
-/*==============================
-        STUDENT DETAILS
-==============================*/
-.student-card{
-    margin-top:22px;
-}
-.status{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    padding:7px 10px;
-    border-radius:20px;
-    background:rgba(34,197,94,.07);
-    color:#86EFAC;
-    font-size:10px;
-}
-.status-dot{
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    background:var(--primary);
-    box-shadow:0 0 8px rgba(34,197,94,.6);
-}
-.student-details{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    margin-top:22px;
-    border-top:1px solid #222228;
-}
-.detail{
-    min-height:85px;
-    padding:20px 15px 10px 0;
-}
-.detail+ .detail{
-    padding-left:20px;
-    border-left:1px solid #222228;
-}
-.detail span{
-    display:block;
-    color:#666672;
-    font-size:10px;
-}
-.detail strong{
-    display:block;
-    margin-top:9px;
-    font-size:13px;
-}
-.active-text{
-    color:#86EFAC;
-}
-/*==============================
-             FOOTER
-==============================*/
-footer{
-    display:flex;
-    justify-content:space-between;
-    margin-top:35px;
-    padding-top:20px;
-    border-top:1px solid #1B1B20;
-    color:#555560;
-    font-size:10px;
-}
-/*==============================
-           RESPONSIVE
-==============================*/
-@media(max-width:700px){
-    .course-type-row{
-        align-items:stretch;
-        flex-direction:column;
-    }
-    .course-type-options{
-        width:100%;
-    }
-    .course-option{
-        flex:1;
-        min-width:0;
-    }
-
-    .bhoj-page{
-        width:calc(100% - 28px);
-        padding-top:18px;
-    }
-    .topbar{
-        margin-bottom:30px;
-    }
-    .hero{
-        padding:28px;
-    }
-    .hero h1{
-        font-size:31px;
-    }
-    .search-box{
-        height:auto;
-        flex-wrap:wrap;
-        padding:8px;
-    }
-    .search-box>i{
-        margin-left:8px;
-    }
-    .search-box input{
-        height:38px;
-    }
-    .search-box button{
-        width:100%;
-        justify-content:center;
-        margin:0;
-    }
-    .student-details{
-        grid-template-columns:repeat(2,1fr);
-    }
-    .detail:nth-child(3){
-        border-left:0;
-        padding-left:0;
-        border-top:1px solid #222228;
-    }
-    .detail:nth-child(4){
-        border-top:1px solid #222228;
-    }
-    footer{
-        flex-direction:column;
-        gap:8px;
-    }
-}
-@media(max-width:450px){
-    .hero{
-        padding:23px;
-    }
-    .hero h1{
-        font-size:27px;
-    }
-    .lookup-card,
-    .student-card{
-        padding:18px;
-    }
-    .student-details{
-        grid-template-columns:1fr;
-    }
-    .detail,
-    .detail+ .detail{
-        padding:15px 0;
-        border-left:0;
-        border-top:1px solid #222228;
-    }
-    .detail:first-child{
-        border-top:0;
-    }
-}
-.lookup-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#4f4f59;font-size:10px}
-.lookup-divider:before,.lookup-divider:after{content:"";height:1px;flex:1;background:#25252b}
-.lookup-divider span{padding:0 5px}
-.bulk-lookup{padding:18px;border:1px solid #24242b;border-radius:16px;background:#101013}
-.bulk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.bulk-header span,.field-selection-heading span{display:block;color:#777782;font-size:10px}
-.bulk-header h3,.field-selection-heading h3{margin-top:4px;font-size:14px}
-.bulk-header>i{font-size:20px;color:#22C55E}
-.upload-box{min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed #363640;border-radius:13px;background:#0C0C0F;color:#9CA3AF;cursor:pointer;transition:.2s}
-.upload-box:hover{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.025)}
-.upload-box>i{font-size:25px;color:#22C55E;margin-bottom:2px}
-.upload-box strong{color:#E5E7EB;font-size:12px}
-.upload-box span{font-size:10px}
-.upload-box small{margin-top:4px;color:#555560;font-size:9px}
-.selected-file{display:flex;align-items:center;gap:11px;margin-top:10px;padding:10px 12px;border:1px solid #27272e;border-radius:11px;background:#0C0C0F}
-.selected-file>i{color:#22C55E;font-size:20px}
-.selected-file>div{flex:1;min-width:0}
-.selected-file strong,.selected-file span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.selected-file strong{font-size:11px;color:#ddd}
-.selected-file span{margin-top:3px;font-size:9px;color:#666672}
-.selected-file button{width:28px;height:28px;border-radius:8px;background:#18181c;color:#888;display:flex;align-items:center;justify-content:center}
-.selected-file button:hover{color:#fff;background:#24242b}
-.field-selection{margin-top:18px;padding-top:18px;border-top:1px solid #222228}
-.field-selection-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.select-all-btn{padding:6px 9px;border:1px solid #292930;border-radius:8px;background:#151518;color:#86EFAC;font-size:9px}
-.select-all-btn:hover{border-color:rgba(34,197,94,.4)}
-.field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.field-option{display:flex;align-items:center;gap:9px;min-height:42px;padding:9px 10px;border:1px solid #25252c;border-radius:10px;background:#0F0F12;color:#9CA3AF;font-size:10px;cursor:pointer;transition:.18s}
-.field-option:hover{border-color:#34343d;color:#fff}
-.field-option input{position:absolute;opacity:0;pointer-events:none}
-.checkmark{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex:none;border:1px solid #3a3a43;border-radius:5px;background:#0b0b0e;color:transparent;font-size:10px}
-.field-option input:checked~.checkmark{border-color:#22C55E;background:#22C55E;color:#061006}
-.field-option input:checked~span:last-child{color:#fff}
-.bulk-action-row{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:15px;color:#555560;font-size:9px}
-.fetch-bulk-btn{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:10px;background:#22C55E;color:#061006;font-size:11px;font-weight:600;white-space:nowrap}
-.fetch-bulk-btn:hover{background:#34D399}
-@media(max-width:700px){
-    .field-grid{grid-template-columns:repeat(2,1fr)}
-    .bulk-action-row{align-items:stretch;flex-direction:column}
-    .fetch-bulk-btn{justify-content:center}
-}
-@media(max-width:450px){
-    .field-grid{grid-template-columns:1fr}
-    .upload-box{min-height:115px}
-}
-
-/* Bulk progress/results */
-.bulk-progress-card{margin-top:22px;padding:25px;border:1px solid #26262D;border-radius:20px;background:#151518}
-.bulk-progress-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
-.bulk-progress-head>div:first-child span{display:block;color:#777782;font-size:10px}
-.bulk-progress-head h2{margin-top:5px;font-size:17px}
-.bulk-progress-actions{display:flex;gap:8px}
-.stop-bulk-btn,.download-bulk-btn{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:9px;font-size:10px;font-weight:600}
-.stop-bulk-btn{background:#2a1717;color:#FCA5A5;border:1px solid #482626}
-.download-bulk-btn{background:#22C55E;color:#061006}
-.stop-bulk-btn:hover{background:#3a1b1b}
-.download-bulk-btn:hover{background:#34D399}
-.progress-track{height:8px;margin-top:22px;border-radius:99px;background:#25252c;overflow:hidden}
-.progress-fill{width:0;height:100%;border-radius:99px;background:#22C55E;transition:width .25s ease}
-.progress-meta{display:flex;justify-content:space-between;gap:15px;margin-top:9px;font-size:10px}
-.progress-meta strong{color:#E5E7EB}.progress-meta span{color:#777782;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bulk-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;border:1px solid #25252c;border-radius:12px;overflow:hidden}
-.bulk-stats div{padding:13px;border-right:1px solid #25252c}.bulk-stats div:last-child{border-right:0}
-.bulk-stats span{display:block;color:#666672;font-size:9px}.bulk-stats strong{display:block;margin-top:5px;font-size:14px}
-.bulk-result-table-wrap{margin-top:18px;overflow:auto;border:1px solid #25252c;border-radius:12px}
-.bulk-result-table{width:100%;border-collapse:collapse;min-width:650px}
-.bulk-result-table th,.bulk-result-table td{padding:10px 12px;border-bottom:1px solid #222228;text-align:left;font-size:9px;white-space:nowrap}
-.bulk-result-table th{background:#101013;color:#86EFAC;font-weight:600}
-.bulk-result-table td{color:#C9CAD0}.bulk-result-table tr:last-child td{border-bottom:0}
-.failed-box{margin-top:16px;padding:13px;border:1px solid #422828;border-radius:12px;background:#160f0f}
-.failed-box>div:first-child{display:flex;justify-content:space-between;gap:10px}
-.failed-box strong{font-size:10px;color:#FCA5A5}.failed-box span{font-size:9px;color:#777}
-#failedNumbers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.failed-number{padding:5px 7px;border-radius:7px;background:#241616;color:#FCA5A5;font-size:9px}
-@media(max-width:600px){
-    .bulk-progress-head{align-items:stretch;flex-direction:column}
-    .bulk-progress-actions{width:100%}.stop-bulk-btn,.download-bulk-btn{flex:1;justify-content:center}
-}
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MP Bhoj • Student Lookup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root{--bg:#08090b;--panel:#101216;--panel2:#0c0e12;--line:#20242b;--line2:#2b3038;--text:#f5f7fa;--muted:#8d96a3;--muted2:#626b78;--green:#35d17b;--green2:#1faa62;--red:#ff6f6f;--amber:#f4bd5b;--shadow:0 24px 70px rgba(0,0,0,.35)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#18251e 0,transparent 32%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}button,input{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
+.page{width:min(1120px,calc(100% - 34px));margin:auto;padding:24px 0 50px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}.brand{display:flex;align-items:center;gap:11px}.brand-mark{width:40px;height:40px;border:1px solid #2a4435;border-radius:13px;display:grid;place-items:center;background:#0f1a14;color:var(--green);font-size:20px}.brand strong{font-size:13px}.brand span{display:block;color:var(--muted2);font-size:10px;margin-top:2px}.year{padding:8px 11px;border:1px solid #25352c;border-radius:10px;color:#93e7b6;background:#0d1712;font-size:10px}
+.hero{position:relative;overflow:hidden;padding:36px;border:1px solid var(--line);border-radius:25px;background:linear-gradient(135deg,#12161a,#0d1014);box-shadow:var(--shadow)}.hero:after{content:"";position:absolute;width:260px;height:260px;right:-80px;top:-120px;border-radius:50%;background:radial-gradient(circle,rgba(53,209,123,.15),transparent 65%)}.eyebrow{display:inline-flex;align-items:center;gap:7px;color:#8ee7b4;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}.eyebrow i{font-size:14px}.hero h1{margin:10px 0 9px;font-size:clamp(30px,4vw,48px);letter-spacing:-1.8px;line-height:1.04}.hero p{max-width:690px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}.hero-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:19px}.chip{padding:7px 10px;border:1px solid #242a31;border-radius:99px;background:#0d1013;color:#9da5b0;font-size:9px}.chip b{color:#dfe5eb;font-weight:600}
+.card{margin-top:18px;border:1px solid var(--line);border-radius:21px;background:rgba(16,18,22,.94);overflow:hidden}.card-head{display:flex;align-items:center;justify-content:space-between;padding:21px 22px;border-bottom:1px solid var(--line)}.card-title{display:flex;gap:12px;align-items:center}.icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#0d1812;color:var(--green);border:1px solid #1f3a2b;font-size:18px}.card-title span{display:block;color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.card-title h2{margin:4px 0 0;font-size:15px}.body{padding:22px}
+.course{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;margin-bottom:15px}.course-copy,.course-option{border:1px solid var(--line);background:var(--panel2);border-radius:13px;padding:13px}.course-copy span{display:block;color:var(--muted2);font-size:9px}.course-copy b{display:block;margin-top:4px;font-size:11px}.course-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.course-option{position:relative;display:flex;align-items:center;gap:9px;cursor:pointer}.course-option input{position:absolute;opacity:0}.radio{width:15px;height:15px;border:1px solid #424954;border-radius:50%;flex:none}.course-option:has(input:checked){border-color:#347b57;background:#0e1b14}.course-option input:checked~.radio{border:5px solid var(--green)}.course-option b{font-size:11px}.course-option small{display:block;margin-top:2px;color:var(--muted2);font-size:8px}
+.search{display:flex;align-items:center;gap:10px;padding:7px 7px 7px 14px;border:1px solid var(--line2);border-radius:14px;background:#0c0f12}.search:focus-within{border-color:#357c57;box-shadow:0 0 0 3px rgba(53,209,123,.07)}.search>i{color:var(--muted2);font-size:18px}.search input{flex:1;min-width:0;height:39px;border:0;outline:0;background:transparent;color:#fff;font-size:12px}.search input::placeholder{color:#5e6672}.btn{border:0;border-radius:10px;padding:10px 15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:10px;font-weight:700;white-space:nowrap}.btn.green{background:var(--green);color:#07130c}.btn.green:hover{background:#4be08d}.btn.dark{background:#171a1f;border:1px solid var(--line2);color:#d7dce2}.btn.red{background:#2a1416;border:1px solid #52272b;color:#ff9b9b}.hint{margin:9px 2px 0;color:var(--muted2);font-size:9px}
+.divider{display:flex;align-items:center;gap:10px;margin:22px 0;color:#555d69;font-size:9px}.divider:before,.divider:after{content:"";height:1px;background:var(--line);flex:1}
+.bulk-box{border:1px solid var(--line);border-radius:17px;background:#0c0f12;padding:17px}.bulk-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.bulk-top span{display:block;color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:.05em}.bulk-top h3{margin:4px 0 0;font-size:13px}.bulk-top i{font-size:21px;color:var(--green)}.drop{min-height:128px;border:1px dashed #343b45;border-radius:13px;display:grid;place-items:center;text-align:center;padding:20px;cursor:pointer;transition:.18s;background:#090b0e}.drop:hover,.drop.drag{border-color:#3c9666;background:#0c1711}.drop i{font-size:28px;color:var(--green)}.drop strong{display:block;margin-top:5px;font-size:11px}.drop span{display:block;margin-top:4px;color:var(--muted);font-size:9px}.drop small{display:block;margin-top:9px;color:var(--muted2);font-size:8px}.selected{margin-top:9px;padding:9px 11px;border:1px solid #27312b;border-radius:11px;background:#0e1511;display:flex;align-items:center;gap:9px}.selected>i{color:var(--green)}.selected div{min-width:0;flex:1}.selected strong{display:block;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.selected span{display:block;color:var(--muted2);font-size:8px;margin-top:2px}.selected button{background:transparent;color:var(--muted2);border:0;font-size:16px}
+.fields{margin-top:17px}.fields-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:10px}.fields-head span{display:block;color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:.05em}.fields-head b{display:block;margin-top:3px;font-size:11px}.select-all{background:transparent;border:0;color:#8fe2b1;font-size:9px}.field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.field{position:relative;display:flex;align-items:center;gap:7px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#0d1013;color:#a9b0b9;font-size:9px;cursor:pointer}.field input{position:absolute;opacity:0}.check{width:14px;height:14px;border:1px solid #414852;border-radius:4px;display:grid;place-items:center;color:transparent;font-size:10px}.field input:checked~.check{background:var(--green);border-color:var(--green);color:#06100a}.field input:checked~span:last-child{color:#e8edf1}.bulk-action{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}.bulk-action p{margin:0;color:var(--muted2);font-size:9px;line-height:1.6}.bulk-action p b{color:#b8c0ca}.bulk-action .btn{min-width:125px}
+.single-result{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px}.mini{padding:14px;border-right:1px solid var(--line);background:#0d1013}.mini:last-child{border-right:0}.mini span{display:block;color:var(--muted2);font-size:8px}.mini b{display:block;margin-top:5px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.good{color:#8fe2b1}.bad{color:#ff9292}
+.progress-card{margin-top:18px;border:1px solid #25302a;border-radius:21px;background:linear-gradient(145deg,#111713,#0e1114);overflow:hidden}.progress-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 21px;border-bottom:1px solid #202a24}.progress-title small{display:block;color:#6f7b75;font-size:9px;text-transform:uppercase;letter-spacing:.06em}.progress-title h2{margin:5px 0 0;font-size:15px}.actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.actions .btn{padding:9px 11px}.progress-body{padding:19px 21px}.bar{height:8px;border-radius:99px;background:#202722;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#2abf6e,#67e39c);border-radius:inherit;transition:width .25s}.progress-line{display:flex;justify-content:space-between;gap:15px;margin-top:9px;font-size:9px}.progress-line strong{font-size:10px}.progress-line span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px;border:1px solid var(--line);border-radius:13px;overflow:hidden}.stat{padding:12px 13px;border-right:1px solid var(--line)}.stat:last-child{border:0}.stat span{display:block;color:var(--muted2);font-size:8px}.stat b{display:block;margin-top:5px;font-size:14px}.status-processing{color:#8fe2b1}.status-stop{color:#ffd084}.status-error{color:#ff9292}.live-head{display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:9px}.live-head b{font-size:10px}.live-head span{color:var(--muted2);font-size:8px}.table-wrap{border:1px solid var(--line);border-radius:13px;overflow:auto;background:#0a0c0f}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:10px 11px;border-bottom:1px solid #1b2026;text-align:left;font-size:8.5px;white-space:nowrap}.table th{background:#101318;color:#8fe2b1;font-weight:700;position:sticky;top:0}.table td{color:#c8ced5}.table tr:last-child td{border:0}.empty{padding:26px;text-align:center;color:#606975;font-size:9px}.failed{margin-top:12px;padding:12px;border:1px solid #452529;background:#170f11;border-radius:12px}.failed-head{display:flex;justify-content:space-between}.failed-head b{font-size:9px;color:#ff9b9b}.failed-head span{font-size:8px;color:var(--muted2)}.failed-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.failed-list span{padding:5px 7px;border-radius:7px;background:#251619;color:#ffaaaa;font-size:8px}.reconnect{margin-top:11px;padding:9px 11px;border:1px solid #4b3b1e;border-radius:10px;background:#17140e;color:#e8c980;font-size:9px;display:none}.note{margin-top:13px;color:#626b75;font-size:8px;line-height:1.6}.foot{display:flex;justify-content:space-between;margin-top:24px;padding-top:17px;border-top:1px solid var(--line);color:#505862;font-size:8px}
+.spin{animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.course{grid-template-columns:1fr}.field-grid{grid-template-columns:repeat(2,1fr)}.single-result{grid-template-columns:repeat(2,1fr)}.mini:nth-child(2){border-right:0}.mini:nth-child(n+3){border-top:1px solid var(--line)}.progress-head{align-items:flex-start;flex-direction:column}.actions{width:100%;justify-content:stretch}.actions .btn{flex:1}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(2){border-right:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}}
+@media(max-width:520px){.page{width:calc(100% - 22px);padding-top:14px}.hero{padding:25px}.body{padding:15px}.card-head{padding:17px}.search{flex-wrap:wrap;padding:7px}.search input{height:38px}.search .btn{width:100%}.field-grid{grid-template-columns:1fr}.bulk-action{align-items:stretch;flex-direction:column}.bulk-action .btn{width:100%}.single-result{grid-template-columns:1fr}.mini,.mini:nth-child(2){border-right:0}.mini+ .mini{border-top:1px solid var(--line)}.foot{flex-direction:column;gap:7px}}
 </style>
 </head>
 <body>
-    <main class="bhoj-page">
-        <header class="topbar">
-            <a href="../index.html" class="back-btn">
-                <i class="ti ti-arrow-left"></i>
-                Dashboard
-            </a>
-            <div class="year-badge">
-                <i class="ti ti-calendar"></i>
-                2026
-            </div>
-        </header>
-        <section class="hero">
-            <div class="hero-icon">
-                <i class="ti ti-school"></i>
-            </div>
-            <span class="label">MP Bhoj University</span>
-            <h1>Student Workspace</h1>
-            <p>
-                Quickly find student information using the roll number.
-            </p>
-        </section>
-        <section class="lookup-card">
-            <div class="card-heading">
-                <div class="heading-icon">
-                    <i class="ti ti-user-search"></i>
-                </div>
-                <div>
-                    <span>Student Lookup</span>
-                    <h2>Find Student</h2>
-                </div>
-            </div>
-            <div class="course-type-row">
-                <div class="course-type-label">
-                    <span>Course Type</span>
-                    <strong>Select Student Course</strong>
-                </div>
-                <div class="course-type-options">
-                    <label class="course-option">
-                        <input type="radio" name="courseType" value="UG" checked>
-                        <span class="course-radio"></span>
-                        <span>
-                            <b>UG</b>
-                            <small>Under Graduate</small>
-                        </span>
-                    </label>
-                    <label class="course-option">
-                        <input type="radio" name="courseType" value="PG">
-                        <span class="course-radio"></span>
-                        <span>
-                            <b>PG</b>
-                            <small>Post Graduate</small>
-                        </span>
-                    </label>
-                </div>
-            </div>
+<div class="page">
+<header class="top">
+  <div class="brand"><div class="brand-mark"><i class="ti ti-school"></i></div><div><strong>MP Bhoj University</strong><span>Student Lookup Workspace</span></div></div>
+  <div class="year">2026 • UG / PG</div>
+</header>
+<section class="hero">
+  <span class="eyebrow"><i class="ti ti-shield-check"></i> Official source workflow</span>
+  <h1>Student Lookup</h1>
+  <p>Single student search ya PDF/Excel se bulk lookup. Details live update hoti rahengi, aur batch ke beech connection tootne par bhi completed records server par safe rahenge.</p>
+  <div class="hero-chips"><span class="chip"><b>Live</b> progress</span><span class="chip"><b>10</b> live rows</span><span class="chip"><b>Excel + PDF</b> export</span><span class="chip"><b>Stop</b> after current lookup</span></div>
+</section>
 
-            <div class="search-box">
-                <i class="ti ti-id"></i>
-                <input
-                    type="text"
-                    id="rollNumber"
-                    placeholder="Enter Roll Number"
-                    autocomplete="off"
-                >
-                <button id="searchBtn">
-                    <i class="ti ti-search"></i>
-                    Search
-                </button>
-            </div>
-            <div class="search-hint">
-                Enter the student's roll number to fetch available information.
-            </div>
-            <div class="lookup-divider"><span>OR</span></div>
-            <div class="bulk-lookup">
-                <div class="bulk-header">
-                    <div>
-                        <span>Bulk Student Lookup</span>
-                        <h3>Upload PDF or Excel</h3>
-                    </div>
-                    <i class="ti ti-file-spreadsheet"></i>
-                </div>
-                <label class="upload-box" for="studentFile">
-                    <i class="ti ti-cloud-upload"></i>
-                    <strong>Drop PDF or Excel file here</strong>
-                    <span>or click to browse</span>
-                    <small>PDF • XLS • XLSX</small>
-                    <input type="file" id="studentFile" accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
-                </label>
-                <div class="selected-file" id="selectedFile" hidden>
-                    <i class="ti ti-file"></i>
-                    <div>
-                        <strong id="selectedFileName">No file selected</strong>
-                        <span id="selectedFileSize"></span>
-                    </div>
-                    <button type="button" id="removeFile" aria-label="Remove file">
-                        <i class="ti ti-x"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="field-selection">
-                <div class="field-selection-heading">
-                    <div>
-                        <span>Information to Fetch</span>
-                        <h3>Select the details you need</h3>
-                    </div>
-                    <button type="button" class="select-all-btn" id="selectAllFields">Select All</button>
-                </div>
-                <div class="field-grid">
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="name" checked>
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Name</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="father_name" checked>
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Father's Name</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="mobile" checked>
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Mobile Number</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="enrollment">
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Enrollment Number</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="course">
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Course</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="dob">
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Date of Birth</span>
-                    </label>
-                    <label class="field-option">
-                        <input type="checkbox" name="fields" value="study_centre">
-                        <span class="checkmark"><i class="ti ti-check"></i></span>
-                        <span>Study Centre</span>
-                    </label>
-                </div>
-            </div>
-            <div class="bulk-action-row">
-                <span>For bulk files, roll numbers will be extracted automatically.</span>
-                <button type="button" class="fetch-bulk-btn" id="bulkFetchBtn">
-                    <i class="ti ti-player-play"></i>
-                    Start Fetch
-                </button>
-            </div>
-        </section>
+<section class="card">
+  <div class="card-head"><div class="card-title"><div class="icon"><i class="ti ti-user-search"></i></div><div><span>Student Lookup</span><h2>Find a student</h2></div></div></div>
+  <div class="body">
+    <div class="course">
+      <div class="course-copy"><span>Course Type</span><b>Choose the student's programme</b></div>
+      <div class="course-options">
+        <label class="course-option"><input type="radio" name="courseType" value="UG" checked><span class="radio"></span><span><b>UG</b><small>Under Graduate</small></span></label>
+        <label class="course-option"><input type="radio" name="courseType" value="PG"><span class="radio"></span><span><b>PG</b><small>Post Graduate</small></span></label>
+      </div>
+    </div>
+    <div class="search"><i class="ti ti-id"></i><input id="rollNumber" placeholder="Enter Enrollment / Roll Number" autocomplete="off"><button class="btn green" id="searchBtn"><i class="ti ti-search"></i> Search</button></div>
+    <div class="hint">Single lookup uses the official MP Bhoj migration workflow.</div>
+    <div class="single-result" id="singleResult">
+      <div class="mini"><span>Name</span><b id="singleName">—</b></div><div class="mini"><span>Father's Name</span><b id="singleFather">—</b></div><div class="mini"><span>Mobile</span><b id="singleMobile">—</b></div><div class="mini"><span>Status</span><b id="singleStatus">Ready</b></div>
+    </div>
 
-        <section class="bulk-progress-card" id="bulkProgressCard" hidden>
-            <div class="bulk-progress-head">
-                <div>
-                    <span>Bulk Fetch</span>
-                    <h2 id="bulkProgressTitle">Preparing...</h2>
-                </div>
-                <div class="bulk-progress-actions">
-                    <button type="button" id="stopBulkBtn" class="stop-bulk-btn">
-                        <i class="ti ti-player-stop"></i> Stop
-                    </button>
-                    <a id="downloadBulkBtn" class="download-bulk-btn" href="#" hidden>
-                        <i class="ti ti-download"></i> Download Excel
-                    </a>
-                </div>
-            </div>
+    <div class="divider">OR BULK LOOKUP</div>
+    <div class="bulk-box">
+      <div class="bulk-top"><div><span>Bulk Student Lookup</span><h3>Upload PDF / Excel</h3></div><i class="ti ti-file-spreadsheet"></i></div>
+      <label class="drop" id="dropZone" for="studentFile"><div><i class="ti ti-cloud-upload"></i><strong>Drop your file here</strong><span>or click to browse</span><small>PDF • XLS • XLSX • CSV</small></div><input id="studentFile" type="file" accept=".pdf,.xls,.xlsx,.csv" hidden></label>
+      <div class="selected" id="selectedFile" hidden><i class="ti ti-file"></i><div><strong id="selectedFileName"></strong><span id="selectedFileSize"></span></div><button id="removeFile" type="button"><i class="ti ti-x"></i></button></div>
+      <div class="fields">
+        <div class="fields-head"><div><span>Information to fetch</span><b>Select required fields</b></div><button class="select-all" id="selectAllFields" type="button">Select All</button></div>
+        <div class="field-grid">
+          <label class="field"><input name="fields" value="name" checked type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Name</span></label>
+          <label class="field"><input name="fields" value="father_name" checked type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Father's Name</span></label>
+          <label class="field"><input name="fields" value="mobile" checked type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Mobile Number</span></label>
+          <label class="field"><input name="fields" value="enrollment" type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Enrollment Number</span></label>
+          <label class="field"><input name="fields" value="course" type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Course</span></label>
+          <label class="field"><input name="fields" value="dob" type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Date of Birth</span></label>
+          <label class="field"><input name="fields" value="study_centre" type="checkbox"><span class="check"><i class="ti ti-check"></i></span><span>Study Centre</span></label>
+        </div>
+      </div>
+      <div class="bulk-action"><p><b>Live preview:</b> latest 10 completed records. Full batch ke liye Excel ya PDF export.</p><button class="btn green" id="bulkFetchBtn"><i class="ti ti-player-play"></i> Start Fetch</button></div>
+    </div>
+  </div>
+</section>
 
-            <div class="progress-track">
-                <div class="progress-fill" id="bulkProgressFill"></div>
-            </div>
-
-            <div class="progress-meta">
-                <strong id="bulkProgressCount">0 / 0</strong>
-                <span id="bulkCurrentNumber">Waiting...</span>
-            </div>
-
-            <div class="bulk-stats">
-                <div><span>Found</span><strong id="bulkFound">0</strong></div>
-                <div><span>Failed</span><strong id="bulkFailed">0</strong></div>
-                <div><span>Status</span><strong id="bulkStatus">Queued</strong></div>
-            </div>
-
-            <div class="bulk-result-table-wrap">
-                <table class="bulk-result-table">
-                    <thead id="bulkResultHead"></thead>
-                    <tbody id="bulkResultBody"></tbody>
-                </table>
-            </div>
-
-            <div class="failed-box" id="failedBox" hidden>
-                <div>
-                    <strong>Failed Enrollment Numbers</strong>
-                    <span id="failedCountLabel"></span>
-                </div>
-                <div id="failedNumbers"></div>
-            </div>
-        </section>
-
-        <section class="student-card">
-            <div class="student-header">
-                <div>
-                    <span>Student Information</span>
-                    <h2>Student Details</h2>
-                </div>
-                <div class="status">
-                    <span class="status-dot"></span>
-                    Active
-                </div>
-            </div>
-            <div class="student-details">
-                <div class="detail">
-                    <span>Name</span>
-                    <strong id="studentName">—</strong>
-                </div>
-                <div class="detail">
-                    <span>Mobile Number</span>
-                    <strong id="studentMobile">—</strong>
-                </div>
-                <div class="detail">
-                    <span>Roll Number</span>
-                    <strong id="studentRoll">—</strong>
-                </div>
-                <div class="detail">
-                    <span>Status</span>
-                    <strong class="active-text" id="studentStatus">
-                        Active
-                    </strong>
-                </div>
-            </div>
-        </section>
-        <footer>
-            <span>MP Bhoj Student Workspace</span>
-            <span>Academic Year 2026</span>
-        </footer>
-    </main>
-    <script src="bhoj.js"></script>
+<section class="progress-card" id="bulkProgressCard" hidden>
+  <div class="progress-head"><div class="progress-title"><small>Bulk Fetch</small><h2 id="bulkProgressTitle">Preparing…</h2></div><div class="actions"><button class="btn red" id="stopBulkBtn" type="button"><i class="ti ti-player-stop"></i> Stop</button><a class="btn dark" id="downloadExcelBtn" hidden><i class="ti ti-file-spreadsheet"></i> Excel</a><a class="btn dark" id="downloadPdfBtn" hidden><i class="ti ti-file-type-pdf"></i> PDF</a></div></div>
+  <div class="progress-body">
+    <div class="bar"><div class="fill" id="bulkProgressFill"></div></div>
+    <div class="progress-line"><strong id="bulkProgressCount">0 / 0</strong><span id="bulkCurrentNumber">Waiting…</span></div>
+    <div class="stats"><div class="stat"><span>Found</span><b id="bulkFound">0</b></div><div class="stat"><span>Failed</span><b id="bulkFailed">0</b></div><div class="stat"><span>Completed</span><b id="bulkCompleted">0</b></div><div class="stat"><span>Status</span><b id="bulkStatus">Queued</b></div></div>
+    <div class="reconnect" id="reconnectBox"><i class="ti ti-wifi-off"></i> Connection temporarily lost. Batch backend par chal sakta hai. Reconnecting automatically…</div>
+    <div class="live-head"><b>Live results</b><span id="previewLabel">Showing 0 of 0</span></div>
+    <div class="table-wrap"><table class="table"><thead id="bulkResultHead"></thead><tbody id="bulkResultBody"><tr><td class="empty">Results will appear here as each student is completed.</td></tr></tbody></table></div>
+    <div class="failed" id="failedBox" hidden><div class="failed-head"><b>Failed / not found</b><span id="failedCountLabel"></span></div><div class="failed-list" id="failedNumbers"></div></div>
+    <div class="note">Completed records are written to the server after each student. Stop is graceful: the current official lookup finishes, then the batch stops so the completed records can be exported safely.</div>
+  </div>
+</section>
+<footer class="foot"><span>MP Bhoj Student Lookup</span><span>Official-source workflow • No CAPTCHA/auth/rate-limit bypass</span></footer>
+</div>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const rollInput = document.getElementById('rollNumber');
-    const searchBtn = document.getElementById('searchBtn');
-    const studentName = document.getElementById('studentName');
-    const studentMobile = document.getElementById('studentMobile');
-    const studentRoll = document.getElementById('studentRoll');
-    const studentStatus = document.getElementById('studentStatus');
-    const statusBox = document.querySelector('.student-header .status');
-
-    const fileInput = document.getElementById('studentFile');
-    const selectedFile = document.getElementById('selectedFile');
-    const selectedFileName = document.getElementById('selectedFileName');
-    const selectedFileSize = document.getElementById('selectedFileSize');
-    const removeFile = document.getElementById('removeFile');
-    const selectAllFields = document.getElementById('selectAllFields');
-    const bulkFetchBtn = document.getElementById('bulkFetchBtn');
-    const courseTypeInputs = [...document.querySelectorAll('input[name="courseType"]')];
-
-    function getCourseType() {
-        return courseTypeInputs.find(input => input.checked)?.value || 'UG';
-    }
-
-    courseTypeInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            document.querySelectorAll('.course-option').forEach(option => {
-                option.classList.toggle(
-                    'active',
-                    option.querySelector('input')?.checked
-                );
-            });
-        });
-    });
-
-    function setStatus(text, active = true) {
-        if (!statusBox) return;
-        statusBox.innerHTML = `<span class="status-dot"></span>${text}`;
-        statusBox.style.color = active ? '#86EFAC' : '#FCA5A5';
-        const dot = statusBox.querySelector('.status-dot');
-        if (dot) dot.style.background = active ? 'var(--primary)' : '#EF4444';
-    }
-
-    async function searchStudent() {
-        const enrollmentNo = (rollInput?.value || '').trim();
-
-        if (!enrollmentNo) {
-            setStatus('Enter Number', false);
-            studentName.textContent = '—';
-            studentMobile.textContent = '—';
-            studentRoll.textContent = '—';
-            studentStatus.textContent = 'Please enter a number';
-            studentStatus.classList.remove('active-text');
-            return;
-        }
-
-        searchBtn.disabled = true;
-        searchBtn.innerHTML = '<i class="ti ti-loader-2"></i> Searching...';
-        setStatus('Fetching...', true);
-        studentName.textContent = 'Loading...';
-        studentMobile.textContent = 'Loading...';
-        studentRoll.textContent = enrollmentNo;
-        studentStatus.textContent = 'Fetching from MP Bhoj...';
-        studentStatus.classList.add('active-text');
-
-        try {
-            const response = await fetch('https://mp-bhoj-backend.onrender.com/mobile/test', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    enrollment_no: enrollmentNo,
-                    course_type: getCourseType(),
-                    headless: true
-                })
-            });
-
-            const contentType = response.headers.get('content-type') || '';
-            const rawResponse = await response.text();
-
-            let data = {};
-            if (contentType.includes('application/json')) {
-                try {
-                    data = JSON.parse(rawResponse);
-                } catch (parseError) {
-                    throw new Error('API returned invalid JSON');
-                }
-            } else {
-                throw new Error(
-                    `API route not found or server returned HTML (HTTP ${response.status})`
-                );
-            }
-
-            if (!response.ok || data.error || data.success === false) {
-                throw new Error(data.error || 'Student lookup failed');
-            }
-
-            const result = data.result || {};
-            studentName.textContent = result['Candidate Name'] || '—';
-            studentMobile.textContent = result['Mobile No'] || '—';
-            studentRoll.textContent = result['Enrollment No'] || enrollmentNo;
-
-            const found = result['Status'] === 'Found';
-            studentStatus.textContent = result['Status'] || (found ? 'Found' : 'Not Found');
-            studentStatus.classList.toggle('active-text', found);
-            setStatus(found ? 'Found' : 'Not Found', found);
-
-        } catch (error) {
-            studentName.textContent = '—';
-            studentMobile.textContent = '—';
-            studentRoll.textContent = enrollmentNo;
-            studentStatus.textContent = error.message || 'Lookup failed';
-            studentStatus.classList.remove('active-text');
-            setStatus('Error', false);
-        } finally {
-            searchBtn.disabled = false;
-            searchBtn.innerHTML = '<i class="ti ti-search"></i> Search';
-        }
-    }
-
-    searchBtn?.addEventListener('click', searchStudent);
-    rollInput?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') searchStudent();
-    });
-
-    if (fileInput) {
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            if (!file) return;
-            selectedFileName.textContent = file.name;
-            selectedFileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-            selectedFile.hidden = false;
-        });
-    }
-
-    removeFile?.addEventListener('click', () => {
-        fileInput.value = '';
-        selectedFile.hidden = true;
-    });
-
-    selectAllFields?.addEventListener('click', () => {
-        const fields = [...document.querySelectorAll('input[name="fields"]')];
-        const shouldSelect = fields.some(field => !field.checked);
-        fields.forEach(field => field.checked = shouldSelect);
-        selectAllFields.textContent = shouldSelect ? 'Clear All' : 'Select All';
-    });
-
-    const API_BASE = 'https://mp-bhoj-backend.onrender.com';
-    const bulkProgressCard = document.getElementById('bulkProgressCard');
-    const bulkProgressTitle = document.getElementById('bulkProgressTitle');
-    const bulkProgressFill = document.getElementById('bulkProgressFill');
-    const bulkProgressCount = document.getElementById('bulkProgressCount');
-    const bulkCurrentNumber = document.getElementById('bulkCurrentNumber');
-    const bulkFound = document.getElementById('bulkFound');
-    const bulkFailed = document.getElementById('bulkFailed');
-    const bulkStatus = document.getElementById('bulkStatus');
-    const stopBulkBtn = document.getElementById('stopBulkBtn');
-    const downloadBulkBtn = document.getElementById('downloadBulkBtn');
-    const bulkResultHead = document.getElementById('bulkResultHead');
-    const bulkResultBody = document.getElementById('bulkResultBody');
-    const failedBox = document.getElementById('failedBox');
-    const failedCountLabel = document.getElementById('failedCountLabel');
-    const failedNumbers = document.getElementById('failedNumbers');
-
-    let activeBulkJobId = null;
-    let bulkPollingTimer = null;
-
-    function selectedBulkFields() {
-        return [...document.querySelectorAll('input[name="fields"]:checked')]
-            .map(input => input.value);
-    }
-
-    function resetBulkResultUI() {
-        bulkProgressCard.hidden = false;
-        bulkProgressTitle.textContent = 'Uploading file...';
-        bulkProgressFill.style.width = '0%';
-        bulkProgressCount.textContent = '0 / 0';
-        bulkCurrentNumber.textContent = 'Reading file...';
-        bulkFound.textContent = '0';
-        bulkFailed.textContent = '0';
-        bulkStatus.textContent = 'Queued';
-        downloadBulkBtn.hidden = true;
-        downloadBulkBtn.removeAttribute('href');
-        failedBox.hidden = true;
-        failedNumbers.innerHTML = '';
-        bulkResultHead.innerHTML = '';
-        bulkResultBody.innerHTML = '';
-    }
-
-    function renderBulkPreview(rows) {
-        if (!Array.isArray(rows) || !rows.length) return;
-
-        const keys = [];
-        rows.forEach(row => Object.keys(row || {}).forEach(key => {
-            if (!keys.includes(key)) keys.push(key);
-        }));
-
-        bulkResultHead.innerHTML =
-            '<tr>' + keys.map(key => `<th>${escapeHtml(key)}</th>`).join('') + '</tr>';
-
-        bulkResultBody.innerHTML = rows.map(row =>
-            '<tr>' + keys.map(key =>
-                `<td>${escapeHtml(row?.[key] ?? '')}</td>`
-            ).join('') + '</tr>'
-        ).join('');
-    }
-
-    function escapeHtml(value) {
-        return String(value)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
-    }
-
-    function showFailedNumbers(list) {
-        const values = Array.isArray(list) ? list.filter(Boolean) : [];
-        if (!values.length) {
-            failedBox.hidden = true;
-            return;
-        }
-
-        failedBox.hidden = false;
-        failedCountLabel.textContent = `${values.length} number${values.length === 1 ? '' : 's'}`;
-        failedNumbers.innerHTML = values
-            .map(number => `<span class="failed-number">${escapeHtml(number)}</span>`)
-            .join('');
-    }
-
-    async function pollBulkStatus() {
-        if (!activeBulkJobId) return;
-
-        try {
-            const response = await fetch(
-                `${API_BASE}/mobile/status/${activeBulkJobId}`
-            );
-            const data = await response.json();
-
-            if (!response.ok || data.error) {
-                throw new Error(data.error || 'Unable to read bulk status');
-            }
-
-            const current = Number(data.current || 0);
-            const total = Number(data.total || 0);
-            const percent = total ? Math.min(100, (current / total) * 100) : 0;
-
-            bulkProgressFill.style.width = `${percent}%`;
-            bulkProgressCount.textContent = `${current} / ${total}`;
-            bulkCurrentNumber.textContent = data.current_number
-                ? `Current: ${data.current_number}`
-                : 'Waiting...';
-            bulkFound.textContent = data.found ?? 0;
-            bulkFailed.textContent = data.failed ?? 0;
-            bulkStatus.textContent = data.status || 'Processing';
-
-            if (data.preview) renderBulkPreview(data.preview);
-            if (data.failed_numbers) showFailedNumbers(data.failed_numbers);
-
-            if (data.status === 'done' || data.status === 'stopped') {
-                clearTimeout(bulkPollingTimer);
-                bulkPollingTimer = null;
-
-                if (data.status === 'done') {
-                    bulkProgressTitle.textContent = 'Bulk Fetch Complete';
-                    bulkProgressFill.style.width = '100%';
-                } else {
-                    bulkProgressTitle.textContent = 'Bulk Fetch Stopped';
-                }
-
-                if (data.download_url) {
-                    downloadBulkBtn.href = data.download_url;
-                    downloadBulkBtn.hidden = false;
-                }
-
-                bulkFetchBtn.disabled = false;
-                bulkFetchBtn.innerHTML =
-                    '<i class="ti ti-player-play"></i> Start Fetch';
-                return;
-            }
-
-            if (data.status === 'error') {
-                clearTimeout(bulkPollingTimer);
-                bulkPollingTimer = null;
-                bulkProgressTitle.textContent = 'Bulk Fetch Error';
-                bulkCurrentNumber.textContent = data.error || 'Unknown error';
-                bulkFetchBtn.disabled = false;
-                bulkFetchBtn.innerHTML =
-                    '<i class="ti ti-player-play"></i> Start Fetch';
-                return;
-            }
-
-            bulkPollingTimer = setTimeout(pollBulkStatus, 1500);
-
-        } catch (error) {
-            clearTimeout(bulkPollingTimer);
-            bulkPollingTimer = null;
-            bulkProgressTitle.textContent = 'Connection Error';
-            bulkCurrentNumber.textContent = error.message || 'Status request failed';
-            bulkFetchBtn.disabled = false;
-            bulkFetchBtn.innerHTML =
-                '<i class="ti ti-player-play"></i> Start Fetch';
-        }
-    }
-
-    bulkFetchBtn?.addEventListener('click', async () => {
-        if (!fileInput?.files?.length) {
-            alert('Please select a PDF or Excel file first.');
-            return;
-        }
-
-        const fields = selectedBulkFields();
-        if (!fields.length) {
-            alert('Please select at least one information field.');
-            return;
-        }
-
-        bulkFetchBtn.disabled = true;
-        bulkFetchBtn.innerHTML =
-            '<i class="ti ti-loader-2"></i> Starting...';
-
-        resetBulkResultUI();
-
-        try {
-            const formData = new FormData();
-            formData.append('data_file', fileInput.files[0]);
-            formData.append('course_type', getCourseType());
-            formData.append('selected_fields', fields.join(','));
-            formData.append('headless', 'true');
-
-            const response = await fetch(`${API_BASE}/mobile/upload`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Bulk upload failed');
-            }
-
-            activeBulkJobId = data.job_id;
-            bulkProgressTitle.textContent =
-                `Fetching ${getCourseType()} Students`;
-            bulkStatus.textContent = 'Processing';
-            await pollBulkStatus();
-
-        } catch (error) {
-            bulkProgressTitle.textContent = 'Bulk Fetch Error';
-            bulkCurrentNumber.textContent = error.message || 'Upload failed';
-            bulkFetchBtn.disabled = false;
-            bulkFetchBtn.innerHTML =
-                '<i class="ti ti-player-play"></i> Start Fetch';
-        }
-    });
-
-    stopBulkBtn?.addEventListener('click', async () => {
-        if (!activeBulkJobId) return;
-
-        stopBulkBtn.disabled = true;
-        stopBulkBtn.innerHTML =
-            '<i class="ti ti-loader-2"></i> Stopping...';
-
-        try {
-            await fetch(`${API_BASE}/mobile/stop/${activeBulkJobId}`, {
-                method: 'POST'
-            });
-        } catch (_) {
-            // Status polling will show the final state.
-        }
-    });
-});
+const API_BASE='https://mp-bhoj-backend.onrender.com';
+const JOB_KEY='mpbhoj_active_bulk_job';
+const $=id=>document.getElementById(id);
+const fileInput=$('studentFile'),dropZone=$('dropZone'),selectedFile=$('selectedFile');
+let activeJobId=localStorage.getItem(JOB_KEY)||null, pollTimer=null, polling=false, retryMs=1800;
+function course(){return document.querySelector('input[name="courseType"]:checked')?.value||'UG'}
+function fields(){return [...document.querySelectorAll('input[name="fields"]:checked')].map(x=>x.value)}
+function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function setBtn(el,html,disabled=false){el.disabled=disabled;el.innerHTML=html}
+function setSingleStatus(text,good=false){$('singleStatus').textContent=text;$('singleStatus').className=good?'good':''}
+async function fetchJson(url,opts={},timeout=15000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{const r=await fetch(url,{...opts,signal:controller.signal,cache:'no-store'});const ct=(r.headers.get('content-type')||'').toLowerCase();const raw=await r.text();let data={};if(ct.includes('application/json')){try{data=JSON.parse(raw)}catch{throw new Error('Server returned invalid JSON')}}else{throw new Error(`Server returned HTML (HTTP ${r.status})`)}if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data}finally{clearTimeout(timer)}}
+$('searchBtn').addEventListener('click',async()=>{const no=$('rollNumber').value.trim();if(!no)return;$('singleName').textContent='Loading…';$('singleFather').textContent='—';$('singleMobile').textContent='—';setSingleStatus('Fetching…');setBtn($('searchBtn'),'<i class="ti ti-loader-2 spin"></i> Fetching',true);try{const d=await fetchJson(`${API_BASE}/mobile/test`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enrollment_no:no,course_type:course(),headless:true})},90000);const r=d.result||{};$('singleName').textContent=r['Candidate Name']||'—';$('singleFather').textContent=r["Father's Name"]||'—';$('singleMobile').textContent=r['Mobile No']||'—';setSingleStatus(r.Status||'Not Found',r.Status==='Found')}catch(e){$('singleName').textContent='—';setSingleStatus(e.message||'Lookup failed');}finally{setBtn($('searchBtn'),'<i class="ti ti-search"></i> Search')}});
+$('rollNumber').addEventListener('keydown',e=>{if(e.key==='Enter')$('searchBtn').click()});
+function showFile(f){if(!f)return;$('selectedFileName').textContent=f.name;$('selectedFileSize').textContent=`${(f.size/1024/1024).toFixed(2)} MB`;$('selectedFile').hidden=false}
+fileInput.addEventListener('change',()=>showFile(fileInput.files[0]));['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('drag')}));['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('drag')}));dropZone.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f){fileInput.files=e.dataTransfer.files;showFile(f)}});$('removeFile').addEventListener('click',()=>{fileInput.value='';selectedFile.hidden=true});
+$('selectAllFields').addEventListener('click',()=>{const xs=[...document.querySelectorAll('input[name="fields"]')],select=xs.some(x=>!x.checked);xs.forEach(x=>x.checked=select);$('selectAllFields').textContent=select?'Clear All':'Select All'});
+function resetUI(){ $('bulkProgressCard').hidden=false;$('bulkProgressTitle').textContent='Uploading file…';$('bulkProgressFill').style.width='0%';$('bulkProgressCount').textContent='0 / 0';$('bulkCurrentNumber').textContent='Reading file…';$('bulkFound').textContent='0';$('bulkFailed').textContent='0';$('bulkCompleted').textContent='0';$('bulkStatus').textContent='Queued';$('bulkStatus').className='';$('bulkResultHead').innerHTML='';$('bulkResultBody').innerHTML='<tr><td class="empty">Waiting for the first completed student…</td></tr>';$('previewLabel').textContent='Showing 0 of 0';$('failedBox').hidden=true;$('failedNumbers').innerHTML='';$('reconnectBox').style.display='none';$('downloadExcelBtn').hidden=true;$('downloadPdfBtn').hidden=true}
+function renderRows(rows,total){if(!Array.isArray(rows)||!rows.length)return;const keys=[];rows.forEach(r=>Object.keys(r||{}).forEach(k=>{if(!keys.includes(k))keys.push(k)}));$('bulkResultHead').innerHTML='<tr>'+keys.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr>';$('bulkResultBody').innerHTML=rows.map(r=>'<tr>'+keys.map(k=>`<td>${esc(r?.[k]??'')}</td>`).join('')+'</tr>').join('');$('previewLabel').textContent=`Showing ${rows.length} of ${total} completed`}
+function renderFailed(list){const a=Array.isArray(list)?list.filter(Boolean):[];if(!a.length){$('failedBox').hidden=true;return}$('failedBox').hidden=false;$('failedCountLabel').textContent=`${a.length} number${a.length===1?'':'s'}`;$('failedNumbers').innerHTML=a.map(x=>`<span>${esc(x)}</span>`).join('')}
+function setDownloads(d){if(d.download_url){$('downloadExcelBtn').href=d.download_url;$('downloadExcelBtn').hidden=false}if(d.pdf_download_url){$('downloadPdfBtn').href=d.pdf_download_url;$('downloadPdfBtn').hidden=false}}
+function finishPolling(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null}polling=false;setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch');$('stopBulkBtn').disabled=false;$('stopBulkBtn').innerHTML='<i class="ti ti-player-stop"></i> Stop'}
+async function poll(){if(!activeJobId||polling)return;polling=true;try{const d=await fetchJson(`${API_BASE}/mobile/status/${activeJobId}`,{},12000);retryMs=1800;$('reconnectBox').style.display='none';const cur=+d.current||0,total=+d.total||0,completed=+d.total_processed||cur,pct=total?Math.min(100,cur/total*100):0;$('bulkProgressFill').style.width=pct+'%';$('bulkProgressCount').textContent=`${cur} / ${total}`;$('bulkCurrentNumber').textContent=d.current_number?`Current: ${d.current_number}`:(completed?`Completed ${completed}`:'Preparing…');$('bulkFound').textContent=d.found??0;$('bulkFailed').textContent=d.failed??0;$('bulkCompleted').textContent=completed;$('bulkStatus').textContent=d.status||'processing';$('bulkStatus').className=d.status==='stopping'?'status-stop':d.status==='error'?'status-error':'status-processing';if(d.preview)renderRows(d.preview,total);renderFailed(d.failed_numbers);setDownloads(d);
+if(d.status==='processing'||d.status==='queued'||d.status==='stopping'){if(d.status==='stopping'){$('bulkProgressTitle').textContent='Stopping after current student…';$('stopBulkBtn').disabled=true;$('stopBulkBtn').innerHTML='<i class="ti ti-loader-2 spin"></i> Stopping'}else{$('bulkProgressTitle').textContent=`Fetching ${d.course_type||course()} Students`;$('stopBulkBtn').disabled=false}pollTimer=setTimeout(()=>{polling=false;poll()},1800)}else if(d.status==='done'||d.status==='stopped'||d.status==='error'){if(d.status==='done'){$('bulkProgressTitle').textContent='Bulk Fetch Complete';$('bulkProgressFill').style.width='100%'}else if(d.status==='stopped')$('bulkProgressTitle').textContent='Bulk Fetch Stopped';else{$('bulkProgressTitle').textContent='Bulk Fetch Error';$('bulkCurrentNumber').textContent=d.error||'Backend error'}finishPolling();if(d.status==='done'||d.status==='stopped')setDownloads(d);localStorage.removeItem(JOB_KEY);activeJobId=null}}
+catch(e){$('reconnectBox').style.display='block';$('bulkStatus').textContent='reconnecting';$('bulkStatus').className='status-stop';retryMs=Math.min(10000,Math.round(retryMs*1.6));pollTimer=setTimeout(()=>{polling=false;poll()},retryMs)}finally{if(pollTimer===null)polling=false}}
+$('bulkFetchBtn').addEventListener('click',async()=>{if(!fileInput.files.length)return alert('PDF ya Excel file select karo.');if(!fields().length)return alert('Kam se kam ek field select karo.');resetUI();setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Starting',true);try{const fd=new FormData();fd.append('data_file',fileInput.files[0]);fd.append('course_type',course());fd.append('selected_fields',fields().join(','));fd.append('headless','true');const d=await fetchJson(`${API_BASE}/mobile/upload`,{method:'POST',body:fd},30000);activeJobId=d.job_id;localStorage.setItem(JOB_KEY,activeJobId);$('bulkProgressTitle').textContent=`Fetching ${d.course_type} Students`;setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);poll()}catch(e){$('bulkProgressTitle').textContent='Upload Error';$('bulkCurrentNumber').textContent=e.message||'Upload failed';setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch')}});
+$('stopBulkBtn').addEventListener('click',async()=>{if(!activeJobId)return;setBtn($('stopBulkBtn'),'<i class="ti ti-loader-2 spin"></i> Stopping',true);try{await fetchJson(`${API_BASE}/mobile/stop/${activeJobId}`,{method:'POST'},12000)}catch(e){$('reconnectBox').style.display='block'} });
+window.addEventListener('online',()=>{if(activeJobId)poll()});window.addEventListener('offline',()=>{$('reconnectBox').style.display='block'});
+(async()=>{if(activeJobId){$('bulkProgressCard').hidden=false;$('bulkProgressTitle').textContent='Reconnecting to active batch…';setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);poll()}})();
 </script>
 </body>
 </html>
