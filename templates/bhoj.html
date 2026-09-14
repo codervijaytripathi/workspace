@@ -12,6 +12,21 @@
 :root{--bg:#08090b;--panel:#101216;--panel2:#0c0e12;--line:#20242b;--line2:#2b3038;--text:#f5f7fa;--muted:#8d96a3;--muted2:#626b78;--green:#35d17b;--green2:#1faa62;--red:#ff6f6f;--amber:#f4bd5b;--shadow:0 24px 70px rgba(0,0,0,.35)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#18251e 0,transparent 32%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}button,input{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
 .page{width:min(1120px,calc(100% - 34px));margin:auto;padding:24px 0 50px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}.brand{display:flex;align-items:center;gap:11px}.brand-mark{width:40px;height:40px;border:1px solid #2a4435;border-radius:13px;display:grid;place-items:center;background:#0f1a14;color:var(--green);font-size:20px}.brand strong{font-size:13px}.brand span{display:block;color:var(--muted2);font-size:10px;margin-top:2px}.year{padding:8px 11px;border:1px solid #25352c;border-radius:10px;color:#93e7b6;background:#0d1712;font-size:10px}
+
+/* SERVICE STATUS */
+.top-actions{display:flex;align-items:center;gap:8px}
+.service-status{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#0d1013;color:#8d96a3;font-size:9px;font-weight:700}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#626b78}
+.service-status.active{color:#8fe2b1;border-color:#284936;background:#0d1712}
+.service-status.active .status-dot{background:var(--green);box-shadow:0 0 0 3px rgba(53,209,123,.10)}
+.service-status.waking{color:#f4d18a;border-color:#4a3b20;background:#17130c}
+.service-status.waking .status-dot{background:var(--amber);animation:pulse 1.1s infinite}
+.service-status.sleep{color:#a5adb7}
+.service-status.error{color:#ff9292;border-color:#452529;background:#170f11}
+.activate-btn{padding:8px 11px}
+.activate-btn:disabled{opacity:.65;cursor:wait}
+@keyframes pulse{50%{opacity:.35;transform:scale(.75)}}
+
 .hero{position:relative;overflow:hidden;padding:36px;border:1px solid var(--line);border-radius:25px;background:linear-gradient(135deg,#12161a,#0d1014);box-shadow:var(--shadow)}.hero:after{content:"";position:absolute;width:260px;height:260px;right:-80px;top:-120px;border-radius:50%;background:radial-gradient(circle,rgba(53,209,123,.15),transparent 65%)}.eyebrow{display:inline-flex;align-items:center;gap:7px;color:#8ee7b4;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}.eyebrow i{font-size:14px}.hero h1{margin:10px 0 9px;font-size:clamp(30px,4vw,48px);letter-spacing:-1.8px;line-height:1.04}.hero p{max-width:690px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}.hero-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:19px}.chip{padding:7px 10px;border:1px solid #242a31;border-radius:99px;background:#0d1013;color:#9da5b0;font-size:9px}.chip b{color:#dfe5eb;font-weight:600}
 .card{margin-top:18px;border:1px solid var(--line);border-radius:21px;background:rgba(16,18,22,.94);overflow:hidden}.card-head{display:flex;align-items:center;justify-content:space-between;padding:21px 22px;border-bottom:1px solid var(--line)}.card-title{display:flex;gap:12px;align-items:center}.icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#0d1812;color:var(--green);border:1px solid #1f3a2b;font-size:18px}.card-title span{display:block;color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.card-title h2{margin:4px 0 0;font-size:15px}.body{padding:22px}
 .course{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;margin-bottom:15px}.course-copy,.course-option{border:1px solid var(--line);background:var(--panel2);border-radius:13px;padding:13px}.course-copy span{display:block;color:var(--muted2);font-size:9px}.course-copy b{display:block;margin-top:4px;font-size:11px}.course-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.course-option{position:relative;display:flex;align-items:center;gap:9px;cursor:pointer}.course-option input{position:absolute;opacity:0}.radio{width:15px;height:15px;border:1px solid #424954;border-radius:50%;flex:none}.course-option:has(input:checked){border-color:#347b57;background:#0e1b14}.course-option input:checked~.radio{border:5px solid var(--green)}.course-option b{font-size:11px}.course-option small{display:block;margin-top:2px;color:var(--muted2);font-size:8px}
@@ -30,7 +45,7 @@
 <div class="page">
 <header class="top">
   <div class="brand"><div class="brand-mark"><i class="ti ti-school"></i></div><div><strong>MP Bhoj University</strong><span>Student Lookup Workspace</span></div></div>
-  <div class="year">2026 • UG / PG</div>
+  <div class="top-actions"><div class="service-status sleep" id="serviceStatus"><span class="status-dot"></span><span id="serviceStatusText">Sleep Mode</span></div><button class="btn dark activate-btn" id="activateBtn" type="button">Activate</button><div class="year">2026 • UG / PG</div></div>
 </header>
 <section class="hero">
   <span class="eyebrow"><i class="ti ti-shield-check"></i> Official source workflow</span>
@@ -95,32 +110,384 @@
 <script>
 const API_BASE='https://mp-bhoj-backend.onrender.com';
 const JOB_KEY='mpbhoj_active_bulk_job';
+const PREVIEW_KEY='mpbhoj_preview_';
 const $=id=>document.getElementById(id);
 const fileInput=$('studentFile'),dropZone=$('dropZone'),selectedFile=$('selectedFile');
-let activeJobId=localStorage.getItem(JOB_KEY)||null, pollTimer=null, polling=false, retryMs=1800;
+let activeJobId=localStorage.getItem(JOB_KEY)||null;
+let pollTimer=null,polling=false,retryMs=1800;
+let serviceTimer=null;
+
 function course(){return document.querySelector('input[name="courseType"]:checked')?.value||'UG'}
 function fields(){return [...document.querySelectorAll('input[name="fields"]:checked')].map(x=>x.value)}
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 function setBtn(el,html,disabled=false){el.disabled=disabled;el.innerHTML=html}
 function setSingleStatus(text,good=false){$('singleStatus').textContent=text;$('singleStatus').className=good?'good':''}
-async function fetchJson(url,opts={},timeout=15000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{const r=await fetch(url,{...opts,signal:controller.signal,cache:'no-store'});const ct=(r.headers.get('content-type')||'').toLowerCase();const raw=await r.text();let data={};if(ct.includes('application/json')){try{data=JSON.parse(raw)}catch{throw new Error('Server returned invalid JSON')}}else{throw new Error(`Server returned HTML (HTTP ${r.status})`)}if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data}finally{clearTimeout(timer)}}
-$('searchBtn').addEventListener('click',async()=>{const no=$('rollNumber').value.trim();if(!no)return;$('singleName').textContent='Loading…';$('singleFather').textContent='—';$('singleMobile').textContent='—';setSingleStatus('Fetching…');setBtn($('searchBtn'),'<i class="ti ti-loader-2 spin"></i> Fetching',true);try{const d=await fetchJson(`${API_BASE}/mobile/test`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enrollment_no:no,course_type:course(),headless:true})},90000);const r=d.result||{};$('singleName').textContent=r['Candidate Name']||'—';$('singleFather').textContent=r["Father's Name"]||'—';$('singleMobile').textContent=r['Mobile No']||'—';setSingleStatus(r.Status||'Not Found',r.Status==='Found')}catch(e){$('singleName').textContent='—';setSingleStatus(e.message||'Lookup failed');}finally{setBtn($('searchBtn'),'<i class="ti ti-search"></i> Search')}});
+
+function setServiceStatus(type,text,showButton=true){
+  const box=$('serviceStatus'), label=$('serviceStatusText'), btn=$('activateBtn');
+  box.className='service-status '+type;
+  label.textContent=text;
+  btn.hidden=!showButton;
+  btn.disabled=false;
+  btn.textContent='Activate';
+}
+
+async function checkService(wake=false){
+  if(serviceTimer){clearTimeout(serviceTimer);serviceTimer=null}
+  setServiceStatus('waking','Activating...',false);
+  try{
+    const r=await fetch(`${API_BASE}/health?ts=${Date.now()}`,{
+      method:'GET',cache:'no-store',headers:{'Accept':'application/json'}
+    });
+    const ct=(r.headers.get('content-type')||'').toLowerCase();
+    if(!r.ok || !ct.includes('application/json')) throw new Error('Not ready');
+    const d=await r.json();
+    if(d.ok===true){
+      setServiceStatus('active','Active',false);
+      return true;
+    }
+    throw new Error('Not ready');
+  }catch(e){
+    setServiceStatus('sleep','Sleep Mode',true);
+    return false;
+  }
+}
+
+$('activateBtn').addEventListener('click',async()=>{
+  const btn=$('activateBtn');
+  btn.disabled=true;
+  btn.textContent='Activating...';
+  await checkService(true);
+});
+
+async function fetchJson(url,opts={},timeout=15000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeout);
+  try{
+    const r=await fetch(url,{...opts,signal:controller.signal,cache:'no-store'});
+    const ct=(r.headers.get('content-type')||'').toLowerCase();
+    const raw=await r.text();
+    let data={};
+    if(ct.includes('application/json')){
+      try{data=JSON.parse(raw)}catch{throw new Error('Server returned invalid JSON')}
+    }else{
+      throw new Error(`Server returned HTML (HTTP ${r.status})`);
+    }
+    if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);
+    return data;
+  }finally{clearTimeout(timer)}
+}
+
+$('searchBtn').addEventListener('click',async()=>{
+  const no=$('rollNumber').value.trim();
+  if(!no)return;
+  $('singleName').textContent='Loading…';
+  $('singleFather').textContent='—';
+  $('singleMobile').textContent='—';
+  setSingleStatus('Fetching…');
+  setBtn($('searchBtn'),'<i class="ti ti-loader-2 spin"></i> Fetching',true);
+  try{
+    const ready=await checkService(true);
+    if(!ready)throw new Error('Service is not active. Tap Activate and try again.');
+    const d=await fetchJson(`${API_BASE}/mobile/test`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({enrollment_no:no,course_type:course(),headless:true})
+    },90000);
+    const r=d.result||{};
+    $('singleName').textContent=r['Candidate Name']||'—';
+    $('singleFather').textContent=r["Father's Name"]||'—';
+    $('singleMobile').textContent=r['Mobile No']||'—';
+    setSingleStatus(r.Status||'Not Found',r.Status==='Found');
+  }catch(e){
+    $('singleName').textContent='—';
+    setSingleStatus(e.message||'Lookup failed');
+  }finally{
+    setBtn($('searchBtn'),'<i class="ti ti-search"></i> Search');
+  }
+});
 $('rollNumber').addEventListener('keydown',e=>{if(e.key==='Enter')$('searchBtn').click()});
-function showFile(f){if(!f)return;$('selectedFileName').textContent=f.name;$('selectedFileSize').textContent=`${(f.size/1024/1024).toFixed(2)} MB`;$('selectedFile').hidden=false}
-fileInput.addEventListener('change',()=>showFile(fileInput.files[0]));['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('drag')}));['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('drag')}));dropZone.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f){fileInput.files=e.dataTransfer.files;showFile(f)}});$('removeFile').addEventListener('click',()=>{fileInput.value='';selectedFile.hidden=true});
-$('selectAllFields').addEventListener('click',()=>{const xs=[...document.querySelectorAll('input[name="fields"]')],select=xs.some(x=>!x.checked);xs.forEach(x=>x.checked=select);$('selectAllFields').textContent=select?'Clear All':'Select All'});
-function resetUI(){ $('bulkProgressCard').hidden=false;$('bulkProgressTitle').textContent='Uploading file…';$('bulkProgressFill').style.width='0%';$('bulkProgressCount').textContent='0 / 0';$('bulkCurrentNumber').textContent='Reading file…';$('bulkFound').textContent='0';$('bulkFailed').textContent='0';$('bulkCompleted').textContent='0';$('bulkStatus').textContent='Queued';$('bulkStatus').className='';$('bulkResultHead').innerHTML='';$('bulkResultBody').innerHTML='<tr><td class="empty">Waiting for the first completed student…</td></tr>';$('previewLabel').textContent='Showing 0 of 0';$('failedBox').hidden=true;$('failedNumbers').innerHTML='';$('reconnectBox').style.display='none';$('downloadExcelBtn').hidden=true;$('downloadPdfBtn').hidden=true}
-function renderRows(rows,total){if(!Array.isArray(rows)||!rows.length)return;const keys=[];rows.forEach(r=>Object.keys(r||{}).forEach(k=>{if(!keys.includes(k))keys.push(k)}));$('bulkResultHead').innerHTML='<tr>'+keys.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr>';$('bulkResultBody').innerHTML=rows.map(r=>'<tr>'+keys.map(k=>`<td>${esc(r?.[k]??'')}</td>`).join('')+'</tr>').join('');$('previewLabel').textContent=`Showing ${rows.length} of ${total} completed`}
-function renderFailed(list){const a=Array.isArray(list)?list.filter(Boolean):[];if(!a.length){$('failedBox').hidden=true;return}$('failedBox').hidden=false;$('failedCountLabel').textContent=`${a.length} number${a.length===1?'':'s'}`;$('failedNumbers').innerHTML=a.map(x=>`<span>${esc(x)}</span>`).join('')}
-function setDownloads(d){if(d.download_url){$('downloadExcelBtn').href=d.download_url;$('downloadExcelBtn').hidden=false}if(d.pdf_download_url){$('downloadPdfBtn').href=d.pdf_download_url;$('downloadPdfBtn').hidden=false}}
-function finishPolling(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null}polling=false;setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch');$('stopBulkBtn').disabled=false;$('stopBulkBtn').innerHTML='<i class="ti ti-player-stop"></i> Stop'}
-async function poll(){if(!activeJobId||polling)return;polling=true;try{const d=await fetchJson(`${API_BASE}/mobile/status/${activeJobId}`,{},12000);retryMs=1800;$('reconnectBox').style.display='none';const cur=+d.current||0,total=+d.total||0,completed=+d.total_processed||cur,pct=total?Math.min(100,cur/total*100):0;$('bulkProgressFill').style.width=pct+'%';$('bulkProgressCount').textContent=`${cur} / ${total}`;$('bulkCurrentNumber').textContent=d.current_number?`Current: ${d.current_number}`:(completed?`Completed ${completed}`:'Preparing…');$('bulkFound').textContent=d.found??0;$('bulkFailed').textContent=d.failed??0;$('bulkCompleted').textContent=completed;$('bulkStatus').textContent=d.status||'processing';$('bulkStatus').className=d.status==='stopping'?'status-stop':d.status==='error'?'status-error':'status-processing';if(d.preview)renderRows(d.preview,total);renderFailed(d.failed_numbers);setDownloads(d);
-if(d.status==='processing'||d.status==='queued'||d.status==='stopping'){if(d.status==='stopping'){$('bulkProgressTitle').textContent='Stopping after current student…';$('stopBulkBtn').disabled=true;$('stopBulkBtn').innerHTML='<i class="ti ti-loader-2 spin"></i> Stopping'}else{$('bulkProgressTitle').textContent=`Fetching ${d.course_type||course()} Students`;$('stopBulkBtn').disabled=false}pollTimer=setTimeout(()=>{polling=false;poll()},1800)}else if(d.status==='done'||d.status==='stopped'||d.status==='error'){if(d.status==='done'){$('bulkProgressTitle').textContent='Bulk Fetch Complete';$('bulkProgressFill').style.width='100%'}else if(d.status==='stopped')$('bulkProgressTitle').textContent='Bulk Fetch Stopped';else{$('bulkProgressTitle').textContent='Bulk Fetch Error';$('bulkCurrentNumber').textContent=d.error||'Backend error'}finishPolling();if(d.status==='done'||d.status==='stopped')setDownloads(d);localStorage.removeItem(JOB_KEY);activeJobId=null}}
-catch(e){$('reconnectBox').style.display='block';$('bulkStatus').textContent='reconnecting';$('bulkStatus').className='status-stop';retryMs=Math.min(10000,Math.round(retryMs*1.6));pollTimer=setTimeout(()=>{polling=false;poll()},retryMs)}finally{if(pollTimer===null)polling=false}}
-$('bulkFetchBtn').addEventListener('click',async()=>{if(!fileInput.files.length)return alert('PDF ya Excel file select karo.');if(!fields().length)return alert('Kam se kam ek field select karo.');resetUI();setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Starting',true);try{const fd=new FormData();fd.append('data_file',fileInput.files[0]);fd.append('course_type',course());fd.append('selected_fields',fields().join(','));fd.append('headless','true');const d=await fetchJson(`${API_BASE}/mobile/upload`,{method:'POST',body:fd},30000);activeJobId=d.job_id;localStorage.setItem(JOB_KEY,activeJobId);$('bulkProgressTitle').textContent=`Fetching ${d.course_type} Students`;setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);poll()}catch(e){$('bulkProgressTitle').textContent='Upload Error';$('bulkCurrentNumber').textContent=e.message||'Upload failed';setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch')}});
-$('stopBulkBtn').addEventListener('click',async()=>{if(!activeJobId)return;setBtn($('stopBulkBtn'),'<i class="ti ti-loader-2 spin"></i> Stopping',true);try{await fetchJson(`${API_BASE}/mobile/stop/${activeJobId}`,{method:'POST'},12000)}catch(e){$('reconnectBox').style.display='block'} });
-window.addEventListener('online',()=>{if(activeJobId)poll()});window.addEventListener('offline',()=>{$('reconnectBox').style.display='block'});
-(async()=>{if(activeJobId){$('bulkProgressCard').hidden=false;$('bulkProgressTitle').textContent='Reconnecting to active batch…';setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);poll()}})();
+
+function showFile(f){
+  if(!f)return;
+  $('selectedFileName').textContent=f.name;
+  $('selectedFileSize').textContent=`${(f.size/1024/1024).toFixed(2)} MB`;
+  $('selectedFile').hidden=false;
+}
+fileInput.addEventListener('change',()=>showFile(fileInput.files[0]));
+['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev,e=>{
+  e.preventDefault();dropZone.classList.add('drag');
+}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{
+  e.preventDefault();dropZone.classList.remove('drag');
+}));
+dropZone.addEventListener('drop',e=>{
+  const f=e.dataTransfer.files[0];
+  if(f){fileInput.files=e.dataTransfer.files;showFile(f)}
+});
+$('removeFile').addEventListener('click',()=>{
+  fileInput.value='';
+  selectedFile.hidden=true;
+});
+
+$('selectAllFields').addEventListener('click',()=>{
+  const xs=[...document.querySelectorAll('input[name="fields"]')];
+  const select=xs.some(x=>!x.checked);
+  xs.forEach(x=>x.checked=select);
+  $('selectAllFields').textContent=select?'Clear All':'Select All';
+});
+
+function resetUI(){
+  $('bulkProgressCard').hidden=false;
+  $('bulkProgressTitle').textContent='Uploading file…';
+  $('bulkProgressFill').style.width='0%';
+  $('bulkProgressCount').textContent='0 / 0';
+  $('bulkCurrentNumber').textContent='Reading file…';
+  $('bulkFound').textContent='0';
+  $('bulkFailed').textContent='0';
+  $('bulkCompleted').textContent='0';
+  $('bulkStatus').textContent='Queued';
+  $('bulkStatus').className='';
+  $('bulkResultHead').innerHTML='';
+  $('bulkResultBody').innerHTML='<tr><td class="empty">Waiting for the first completed student…</td></tr>';
+  $('previewLabel').textContent='Showing 0 of 0';
+  $('failedBox').hidden=true;
+  $('failedNumbers').innerHTML='';
+  $('reconnectBox').style.display='none';
+  $('downloadExcelBtn').hidden=true;
+  $('downloadPdfBtn').hidden=true;
+}
+
+function renderRows(rows,total){
+  if(!Array.isArray(rows)||!rows.length)return;
+  const keys=[];
+  rows.forEach(r=>Object.keys(r||{}).forEach(k=>{if(!keys.includes(k))keys.push(k)}));
+  $('bulkResultHead').innerHTML='<tr>'+keys.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr>';
+  $('bulkResultBody').innerHTML=rows.map(r=>'<tr>'+keys.map(k=>`<td>${esc(r?.[k]??'')}</td>`).join('')+'</tr>').join('');
+  $('previewLabel').textContent=`Showing ${rows.length} of ${total} completed`;
+}
+
+function savePreview(rows){
+  if(activeJobId && Array.isArray(rows) && rows.length){
+    localStorage.setItem(PREVIEW_KEY+activeJobId,JSON.stringify(rows));
+  }
+}
+function restorePreview(total){
+  if(!activeJobId)return;
+  try{
+    const rows=JSON.parse(localStorage.getItem(PREVIEW_KEY+activeJobId)||'[]');
+    if(rows.length)renderRows(rows,total);
+  }catch{}
+}
+
+function renderFailed(list){
+  const a=Array.isArray(list)?list.filter(Boolean):[];
+  if(!a.length){$('failedBox').hidden=true;return}
+  $('failedBox').hidden=false;
+  $('failedCountLabel').textContent=`${a.length} number${a.length===1?'':'s'}`;
+  $('failedNumbers').innerHTML=a.map(x=>`<span>${esc(x)}</span>`).join('');
+}
+
+function setDownloads(d){
+  if(d.download_url){
+    $('downloadExcelBtn').href=d.download_url;
+    $('downloadExcelBtn').download='';
+    $('downloadExcelBtn').hidden=false;
+  }
+  if(d.pdf_download_url){
+    $('downloadPdfBtn').href=d.pdf_download_url;
+    $('downloadPdfBtn').download='';
+    $('downloadPdfBtn').hidden=false;
+  }
+}
+
+function getRowsFromStatus(d){
+  if(Array.isArray(d.preview))return d.preview;
+  if(Array.isArray(d.results))return d.results.slice(-10);
+  if(Array.isArray(d.completed_results))return d.completed_results.slice(-10);
+  if(Array.isArray(d.data))return d.data.slice(-10);
+  return null;
+}
+
+function finishPolling(clearJob=true){
+  if(pollTimer){clearTimeout(pollTimer);pollTimer=null}
+  polling=false;
+  $('stopBulkBtn').disabled=false;
+  $('stopBulkBtn').innerHTML='<i class="ti ti-player-stop"></i> Stop';
+  if(clearJob){
+    localStorage.removeItem(JOB_KEY);
+    if(activeJobId)localStorage.removeItem(PREVIEW_KEY+activeJobId);
+    activeJobId=null;
+  }
+  setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch');
+}
+
+async function poll(){
+  if(!activeJobId||polling)return;
+  polling=true;
+  try{
+    const d=await fetchJson(`${API_BASE}/mobile/status/${activeJobId}`,{},12000);
+    retryMs=1800;
+    $('reconnectBox').style.display='none';
+
+    const cur=+d.current||0;
+    const total=+d.total||0;
+    const completed=+d.total_processed||+d.completed||cur;
+    const pct=total?Math.min(100,completed/total*100):0;
+
+    $('bulkProgressFill').style.width=pct+'%';
+    $('bulkProgressCount').textContent=`${completed} / ${total}`;
+    $('bulkCurrentNumber').textContent=d.current_number
+      ?`Current: ${d.current_number}`
+      :(completed?`Completed ${completed}`:'Preparing…');
+
+    $('bulkFound').textContent=d.found??0;
+    $('bulkFailed').textContent=d.failed??0;
+    $('bulkCompleted').textContent=completed;
+
+    const rows=getRowsFromStatus(d);
+    if(rows&&rows.length){
+      renderRows(rows,total);
+      savePreview(rows);
+    }else{
+      restorePreview(total);
+    }
+
+    renderFailed(d.failed_numbers);
+    setDownloads(d);
+
+    const status=d.status||'processing';
+    $('bulkStatus').textContent=status;
+    $('bulkStatus').className=
+      status==='stopping'?'status-stop':
+      status==='error'?'status-error':
+      'status-processing';
+
+    if(status==='processing'||status==='queued'||status==='stopping'){
+      $('bulkProgressTitle').textContent=
+        status==='stopping'
+          ?'Stopping after current student…'
+          :`Fetching ${d.course_type||course()} Students`;
+
+      $('stopBulkBtn').disabled=status==='stopping';
+      $('stopBulkBtn').innerHTML=status==='stopping'
+        ?'<i class="ti ti-loader-2 spin"></i> Stopping'
+        :'<i class="ti ti-player-stop"></i> Stop';
+
+      pollTimer=setTimeout(()=>{
+        polling=false;
+        poll();
+      },1800);
+
+    }else if(status==='done'||status==='stopped'||status==='error'){
+      if(status==='done'){
+        $('bulkProgressTitle').textContent='Bulk Fetch Complete';
+        $('bulkProgressFill').style.width='100%';
+      }else if(status==='stopped'){
+        $('bulkProgressTitle').textContent='Bulk Fetch Stopped';
+      }else{
+        // Keep all successful rows visible even when the last operation reports an error.
+        $('bulkProgressTitle').textContent='Bulk Fetch Finished with Error';
+        $('bulkCurrentNumber').textContent=d.error||'Some operation ended with an error. Completed records are preserved.';
+        restorePreview(total);
+      }
+
+      setDownloads(d);
+      finishPolling(true);
+    }
+  }catch(e){
+    $('reconnectBox').style.display='block';
+    $('bulkStatus').textContent='reconnecting';
+    $('bulkStatus').className='status-stop';
+    // Never clear the existing rows on a temporary connection failure.
+    restorePreview(+$('bulkProgressCount').textContent.split('/')[1]||0);
+    retryMs=Math.min(10000,Math.round(retryMs*1.6));
+    pollTimer=setTimeout(()=>{
+      polling=false;
+      poll();
+    },retryMs);
+  }finally{
+    if(pollTimer===null)polling=false;
+  }
+}
+
+$('bulkFetchBtn').addEventListener('click',async()=>{
+  if(!fileInput.files.length)return alert('PDF ya Excel file select karo.');
+  if(!fields().length)return alert('Kam se kam ek field select karo.');
+
+  const ready=await checkService(true);
+  if(!ready)return alert('Service abhi Sleep Mode me hai. Activate karke dobara Start Fetch karo.');
+
+  resetUI();
+  setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Starting',true);
+
+  try{
+    const fd=new FormData();
+    fd.append('data_file',fileInput.files[0]);
+    fd.append('course_type',course());
+    fd.append('selected_fields',fields().join(','));
+    fd.append('headless','true');
+
+    const d=await fetchJson(`${API_BASE}/mobile/upload`,{
+      method:'POST',
+      body:fd
+    },30000);
+
+    activeJobId=d.job_id;
+    localStorage.setItem(JOB_KEY,activeJobId);
+    localStorage.removeItem(PREVIEW_KEY+activeJobId);
+
+    $('bulkProgressTitle').textContent=`Fetching ${d.course_type||course()} Students`;
+    setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);
+    poll();
+  }catch(e){
+    $('bulkProgressTitle').textContent='Upload Error';
+    $('bulkCurrentNumber').textContent=e.message||'Upload failed';
+    setBtn($('bulkFetchBtn'),'<i class="ti ti-player-play"></i> Start Fetch');
+  }
+});
+
+$('stopBulkBtn').addEventListener('click',async()=>{
+  if(!activeJobId)return;
+  setBtn($('stopBulkBtn'),'<i class="ti ti-loader-2 spin"></i> Stopping',true);
+  try{
+    await fetchJson(`${API_BASE}/mobile/stop/${activeJobId}`,{method:'POST'},12000);
+  }catch(e){
+    $('reconnectBox').style.display='block';
+    // Keep polling; the backend may still receive the stop request or finish current lookup.
+  }
+});
+
+window.addEventListener('online',()=>{
+  $('reconnectBox').style.display='none';
+  checkService(false);
+  if(activeJobId)poll();
+});
+window.addEventListener('offline',()=>{
+  $('reconnectBox').style.display='block';
+});
+
+(async()=>{
+  // Check whether Render is already awake. A failed health check simply means Sleep Mode.
+  try{
+    const r=await fetch(`${API_BASE}/health?ts=${Date.now()}`,{cache:'no-store'});
+    if(r.ok){
+      const d=await r.json();
+      if(d.ok===true)setServiceStatus('active','Active',false);
+      else setServiceStatus('sleep','Sleep Mode',true);
+    }else setServiceStatus('sleep','Sleep Mode',true);
+  }catch{
+    setServiceStatus('sleep','Sleep Mode',true);
+  }
+
+  if(activeJobId){
+    $('bulkProgressCard').hidden=false;
+    $('bulkProgressTitle').textContent='Reconnecting to active batch…';
+    setBtn($('bulkFetchBtn'),'<i class="ti ti-loader-2 spin"></i> Running',true);
+    restorePreview(0);
+    poll();
+  }
+})();
 </script>
 </body>
 </html>
