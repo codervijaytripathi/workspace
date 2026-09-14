@@ -98,10 +98,12 @@ def process_job(job_id, pdf_path):
     except Exception as e:
         JOBS[job_id].update({"status": "error", "error": str(e), "traceback": traceback.format_exc()})
 
-
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return jsonify({
+        "ok": True,
+        "service": "mp-bhoj-backend"
+    })
 
 
 @app.route("/upload", methods=["POST", "OPTIONS"])
